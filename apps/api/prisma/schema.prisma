@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id            String       @id @default(uuid())
+  username      String       @unique
+  firstName     String
+  lastName      String
+  avatar        String?
+  email         String       @unique
+  password      String
+  uploadedFiles attachment[]
+  members       member[]
+  comments      comment[]
+  activities    activity[]
+  workspaces    workspace[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model workspace {
+  id          String   @id @default(uuid())
+  name        String
+  boards      board[]
+  members     member[]
+  description String?
+  slug        String   @unique
+  logoId      String?  @unique
+  logo        media?   @relation(fields: [logoId], references: [id])
+  ownerId     String
+  owner       user     @relation(fields: [ownerId], references: [id])
+  settings    Json?
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model member {
+  id          String    @id @default(uuid())
+  userId      String
+  user        user      @relation(fields: [userId], references: [id])
+  workspaceId String
+  workspace   workspace @relation(fields: [workspaceId], references: [id])
+  role        Role      @default(ADMIN)
+  card        card[]    @relation("cards_to_members")
+  createdAt   DateTime  @default(now())
+}
+
+model board {
+  id          String    @id @default(uuid())
+  name        String
+  background  String
+  description String?
+  workspaceId String
+  workspace   workspace @relation(fields: [workspaceId], references: [id])
+  list        list[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model list {
+  id         String @id @default(uuid())
+  name       String
+  boardId    String
+  board      board  @relation(fields: [boardId], references: [id])
+  orderIndex Int    @default(0)
+  cards      card[]
+}
+
+model card {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  priority    String?      @default("Medium")
+  startDate   DateTime?
+  dueDate     DateTime?
+  checklists  checklist[]
+  attachments attachment[]
+  members     member[]     @relation("cards_to_members")
+  listId      String
+  list        list         @relation(fields: [listId], references: [id])
+  comments    comment[]
+  orderIndex  Int
+  activities  activity[]
+  isCompleted Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  user      user     @relation(fields: [userId], references: [id])
+  cardId    String
+  card      card     @relation(fields: [cardId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model checklist {
+  id          String   @id @default(uuid())
+  content     String
+  isCompleted Boolean  @default(false)
+  cardId      String
+  card        card     @relation(fields: [cardId], references: [id])
+  orderIndex  Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model attachment {
+  id         String @id @default(uuid())
+  mediaId    String @unique
+  media      media  @relation(fields: [mediaId], references: [id])
+  userId     String
+  uploadedBy user   @relation(fields: [userId], references: [id])
+  cardId     String
+  card       card   @relation(fields: [cardId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model activity {
+  id        String   @id @default(uuid())
+  action    String
+  cardId    String
+  card      card     @relation(fields: [cardId], references: [id])
+  userId    String
+  user      user     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model media {
+  id         String      @id @default(uuid())
+  url        String
+  filename   String
+  type       String
+  workspace  workspace?
+  attachment attachment?
+  createdAt  DateTime    @default(now())
+}

@@ -1,0 +1,55 @@
+{
+  "style": "default",
+  "path": "src/components/modern-ui",
+  "theme": "default",
+  "typescript": true,
+  "tailwind": true,
+  "framework": "next",
+  "components": [
+    {
+      "name": "sheet",
+      "version": "latest",
+      "installedAt": "2025-10-16T07:54:56.842Z"
+    },
+    {
+      "name": "button",
+      "version": "latest",
+      "installedAt": "2025-10-16T07:55:29.261Z"
+    },
+    {
+      "name": "tooltip",
+      "version": "latest",
+      "installedAt": "2025-10-16T08:24:43.033Z"
+    },
+    {
+      "name": "input",
+      "version": "latest",
+      "installedAt": "2025-10-16T08:25:45.164Z"
+    },
+    {
+      "name": "dialog",
+      "version": "latest",
+      "installedAt": "2025-10-17T04:29:44.303Z"
+    },
+    {
+      "name": "label",
+      "version": "latest",
+      "installedAt": "2025-10-17T05:07:18.830Z"
+    },
+    {
+      "name": "popover",
+      "version": "latest",
+      "installedAt": "2025-10-17T05:20:10.375Z"
+    },
+    {
+      "name": "textarea",
+      "version": "latest",
+      "installedAt": "2025-10-17T08:00:58.358Z"
+    }
+  ],
+  "aliases": {
+    "cn": "@/libs/utils/helpers",
+    "hook": "@/hooks"
+  },
+  "tailwindVersion": "v4"
+}

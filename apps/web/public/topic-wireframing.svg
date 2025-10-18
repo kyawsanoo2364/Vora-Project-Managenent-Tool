@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="232" height="160" viewBox="0 0 232 160">
+  <g fill="none" fill-rule="evenodd">
+    <rect width="46" height="100" fill="#EBEBEB"/>
+    <rect width="22" height="22" x="12" y="20" fill="#C7C7C7" opacity=".5" rx="7"/>
+    <rect width="40" height="7" x="3" y="68" fill="#B5B5B5"/>
+    <rect width="40" height="7" x="3" y="79" fill="#B5B5B5"/>
+    <rect width="30" height="2" x="8" y="94" fill="#B5B5B5"/>
+    <rect width="46" height="38" y="122" fill="#EBEBEB"/>
+    <rect width="46" height="100" x="62" fill="#EBEBEB"/>
+    <rect width="20" height="2" x="75" y="3" fill="#B5B5B5"/>
+    <rect width="46" height="38" x="62" y="122" fill="#EBEBEB"/>
+    <g transform="translate(124)">
+      <rect width="46" height="100" fill="#EBEBEB"/>
+      <rect width="40" height="6" x="3" y="1" fill="#FBFBFB"/>
+      <g transform="translate(2 19)">
+        <rect width="42" height="22" fill="#FFF" opacity=".9"/>
+        <rect width="30" height="3" x="6" y="4" fill="#B5B5B5"/>
+        <path fill="#B5B5B5" d="M2,10 L40,10 L40,12 L2,12 L2,10 Z M2,13 L40,13 L40,15 L2,15 L2,13 Z M2,16 L26,16 L26,18 L2,18 L2,16 Z"/>
+      </g>
+      <rect width="16" height="2" x="5" y="3" fill="#B5B5B5" opacity=".5"/>
+      <circle cx="40.5" cy="93.5" r="4.5" fill="#B5B5B5"/>
+      <rect width="10" height="2" x="2" y="10" fill="#B5B5B5"/>
+      <rect width="14" height="1" y="14" fill="#B5B5B5"/>
+      <rect width="46" height="1" y="14" fill="#B5B5B5" opacity=".2"/>
+      <rect width="10" height="2" x="18" y="10" fill="#B5B5B5" opacity=".6"/>
+      <rect width="10" height="2" x="34" y="10" fill="#B5B5B5" opacity=".6"/>
+    </g>
+    <rect width="46" height="100" x="186" fill="#EBEBEB"/>
+    <rect width="40" height="6" x="189" y="1" fill="#FBFBFB"/>
+    <g transform="translate(188 19)">
+      <rect width="42" height="16" fill="#FFF" opacity=".9"/>
+      <rect width="42" height="16" y="19" fill="#FFF" opacity=".9"/>
+      <rect width="27" height="3" x="2" y="3" fill="#B5B5B5"/>
+      <rect width="24" height="3" x="2" y="22" fill="#B5B5B5"/>
+      <path fill="#B5B5B5" d="M2 8L40 8 40 10 2 10 2 8zM2 11L15 11 15 13 2 13 2 11zM2 27L40 27 40 29 2 29 2 27zM2 30L17 30 17 32 2 32 2 30z"/>
+      <rect width="42" height="16" y="38" fill="#FFF" opacity=".9"/>
+      <rect width="12" height="3" x="2" y="41" fill="#B5B5B5"/>
+      <path fill="#B5B5B5" d="M2,46 L40,46 L40,48 L2,48 L2,46 Z M2,49 L15,49 L15,51 L2,51 L2,49 Z"/>
+      <rect width="42" height="16" y="57" fill="#FFF" opacity=".9"/>
+      <rect width="34" height="3" x="2" y="60" fill="#B5B5B5"/>
+      <path fill="#B5B5B5" d="M2,65 L40,65 L40,67 L2,67 L2,65 Z M2,68 L15,68 L15,70 L2,70 L2,68 Z"/>
+    </g>
+    <rect width="46" height="38" x="124" y="122" fill="#EBEBEB"/>
+    <rect width="40" height="6" x="127" y="123" fill="#FBFBFB"/>
+    <rect width="16" height="2" x="129" y="125" fill="#B5B5B5"/>
+    <rect width="40" height="7" x="65" y="12" fill="#FBFBFB"/>
+    <rect width="40" height="7" x="65" y="23" fill="#FBFBFB"/>
+    <rect width="40" height="7" x="65" y="34" fill="#FBFBFB"/>
+    <rect width="40" height="7" x="65" y="45" fill="#FBFBFB"/>
+    <rect width="40" height="7" x="65" y="56" fill="#B5B5B5"/>
+    <rect width="16" height="2" x="191" y="3" fill="#B5B5B5" opacity=".5"/>
+    <circle cx="226.5" cy="93.5" r="4.5" fill="#B5B5B5"/>
+    <rect width="10" height="2" x="188" y="10" fill="#B5B5B5"/>
+    <rect width="14" height="1" x="186" y="14" fill="#B5B5B5"/>
+    <rect width="46" height="1" x="186" y="14" fill="#B5B5B5" opacity=".2"/>
+    <rect width="10" height="2" x="204" y="10" fill="#B5B5B5" opacity=".6"/>
+    <rect width="10" height="2" x="220" y="10" fill="#B5B5B5" opacity=".6"/>
+    <g transform="translate(186 122)">
+      <rect width="46" height="38" fill="#EBEBEB"/>
+      <rect width="30" height="3" x="4" y="14" fill="#B5B5B5"/>
+      <path fill="#B5B5B5" d="M4,24 L42,24 L42,26 L4,26 L4,24 Z M4,27 L42,27 L42,29 L4,29 L4,27 Z M4,30 L28,30 L28,32 L4,32 L4,30 Z M4,36 L42,36 L42,38 L4,38 L4,36 Z"/>
+      <rect width="20" height="2" x="13" y="3" fill="#B5B5B5"/>
+      <polygon fill="#B5B5B5" points="2 4 5 2 5 6"/>
+    </g>
+  </g>
+</svg>
