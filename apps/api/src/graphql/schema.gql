@@ -40,13 +40,31 @@ type Workspace {
   updatedAt: DateTime!
 }
 
+type StarredBoardEntity {
+  id: String!
+}
+
+type BoardMember {
+  id: String!
+  user: User
+  role: String!
+}
+
 type Board {
   id: String!
   name: String!
   description: String
   background: String!
   workspace: Workspace!
+  members: [BoardMember!]
   createdAt: DateTime!
+  starred: [StarredBoardEntity!]!
+}
+
+type List {
+  id: String!
+  name: String!
+  orderIndex: Int!
 }
 
 type Query {
@@ -55,7 +73,16 @@ type Query {
   user: User!
   get_all_my_workspaces: [Workspace!]!
   workspace(id: Int!): Workspace!
-  getAllBoards(workspaceId: String!): [Board!]!
+  getAllBoards(workspaceId: String!, take: Int! = 10, cursor: String, sort: String, search: String): PaginatedType!
+  getBoard(boardId: String!): Board!
+  findStarredBoards(workspaceId: String!): [Board!]!
+  list(boardId: String!): [List!]!
+  boardMembers(boardId: String!): [BoardMember!]!
+}
+
+type PaginatedType {
+  items: [Board!]!
+  nextCursor: String
 }
 
 type Mutation {
@@ -68,6 +95,14 @@ type Mutation {
   updateWorkspace(updateWorkspaceInput: UpdateWorkspaceInput!): Workspace!
   removeWorkspace(id: Int!): Workspace!
   createBoard(createBoardInput: CreateBoardInput!): Board!
+  toggleStarredBoard(toggleStarredBoardInput: ToggleStarredBoardInput!): String!
+  updateBoard(updateBoardInput: UpdateBoardInput!): Board!
+  createList(createListInput: CreateListInput!): List!
+  updateList(updateListInput: UpdateListInput!): List!
+  removeList(id: Int!): List!
+  createBoardMember(createBoardMemberInput: CreateBoardMemberInput!): BoardMember!
+  updateBoardMember(updateBoardMemberInput: UpdateBoardMemberInput!, boardId: String!): BoardMember!
+  removeBoardMember(id: Int!): BoardMember!
 }
 
 input SignInInput {
@@ -112,4 +147,44 @@ input CreateBoardInput {
   background: String!
   workspaceId: String!
   description: String
+}
+
+input ToggleStarredBoardInput {
+  workspaceId: String!
+  boardId: String!
+}
+
+input UpdateBoardInput {
+  name: String
+  background: String
+  workspaceId: String
+  description: String
+  id: String!
+}
+
+input CreateListInput {
+  name: String!
+  boardId: String!
+}
+
+input UpdateListInput {
+  name: String
+  boardId: String
+  id: String!
+  orderIndex: Int
+}
+
+input CreateBoardMemberInput {
+  role: ROLE!
+}
+
+enum ROLE {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+input UpdateBoardMemberInput {
+  role: ROLE
+  id: String!
 }

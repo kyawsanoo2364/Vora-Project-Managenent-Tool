@@ -45,6 +45,26 @@
       "name": "textarea",
       "version": "latest",
       "installedAt": "2025-10-17T08:00:58.358Z"
+    },
+    {
+      "name": "avatar-group",
+      "version": "latest",
+      "installedAt": "2025-10-20T10:36:51.685Z"
+    },
+    {
+      "name": "use-media-query",
+      "version": "latest",
+      "installedAt": "2025-10-20T10:39:51.873Z"
+    },
+    {
+      "name": "use-click-away",
+      "version": "latest",
+      "installedAt": "2025-10-21T09:28:00.262Z"
+    },
+    {
+      "name": "avatar",
+      "version": "latest",
+      "installedAt": "2025-10-22T06:47:57.944Z"
     }
   ],
   "aliases": {

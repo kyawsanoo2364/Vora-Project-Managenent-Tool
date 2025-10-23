@@ -8,12 +8,9 @@ import Sidebar from "@/libs/components/sidebar";
 const DashboardLayout = async ({ children }: PropsWithChildren) => {
   return (
     <AuthProvider>
-      <div className="min-h-screen w-full bg-[#1E1E2E] text-[#E0E0E0] border-b border-b-slate-800 shadow-md">
+      <div className="overflow-hidden h-screen w-full bg-[#1E1E2E] text-[#E0E0E0] border-b border-b-slate-800 shadow-md">
         <Navbar />
-        <div className="flex flex-row gap-2">
-          <Sidebar />
-          {children}
-        </div>
+        {children}
       </div>
     </AuthProvider>
   );

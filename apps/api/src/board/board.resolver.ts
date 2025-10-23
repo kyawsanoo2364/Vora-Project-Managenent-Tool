@@ -1,10 +1,16 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql';
 import { BoardService } from './board.service';
 import { Board } from './entities/board.entity';
 import { CreateBoardInput } from './dto/create-board.input';
-import { UpdateBoardInput } from './dto/update-board.input';
+
 import { UseGuards } from '@nestjs/common';
 import { JWTAuthGuard } from 'src/auth/guard/guard.guard';
+import { ToggleStarredBoardInput } from './dto/toggle-starred-board.input';
+import { Paginated } from 'src/common/pagination/paginate.type';
+import { PaginationArgs } from 'src/common/pagination/pagination.args';
+import { PaginatedBoard } from './types/paginated-board.type';
+import { timeStamp } from 'console';
+import { UpdateBoardInput } from './dto/update-board.input';
 
 @Resolver(() => Board)
 export class BoardResolver {
@@ -12,13 +18,66 @@ export class BoardResolver {
 
   @UseGuards(JWTAuthGuard)
   @Mutation(() => Board)
-  createBoard(@Args('createBoardInput') createBoardInput: CreateBoardInput) {
-    return this.boardService.create(createBoardInput);
+  createBoard(
+    @Args('createBoardInput') createBoardInput: CreateBoardInput,
+    @Context() context,
+  ) {
+    const userId = context.req.user.id;
+    return this.boardService.create(createBoardInput, userId);
   }
 
   @UseGuards(JWTAuthGuard)
-  @Query(() => [Board], { name: 'getAllBoards' })
-  findAll(@Args('workspaceId') workspaceId: string) {
-    return this.boardService.findAll(workspaceId);
+  @Query(() => PaginatedBoard, { name: 'getAllBoards' })
+  findAll(
+    @Context() context,
+    @Args('workspaceId') workspaceId: string,
+    @Args() paginationArgs: PaginationArgs,
+    @Args('sort', { nullable: true }) sort?: string,
+    @Args('search', { nullable: true }) search?: string,
+  ) {
+    const userId = context.req.user.id;
+    return this.boardService.findAll(
+      workspaceId,
+      userId,
+      paginationArgs,
+      sort,
+      search,
+    );
+  }
+
+  @UseGuards(JWTAuthGuard)
+  @Query(() => Board, { name: 'getBoard' })
+  findOne(@Args('boardId') boardId: string) {
+    return this.boardService.findOne(boardId);
+  }
+
+  @UseGuards(JWTAuthGuard)
+  @Mutation(() => String)
+  toggleStarredBoard(
+    @Context() context,
+    @Args('toggleStarredBoardInput')
+    toggleStarredBoardInput: ToggleStarredBoardInput,
+  ) {
+    const userId = context.req.user.id;
+    return this.boardService.toggleStarredBoard(
+      toggleStarredBoardInput,
+      userId,
+    );
+  }
+
+  @UseGuards(JWTAuthGuard)
+  @Mutation(() => Board)
+  updateBoard(@Args('updateBoardInput') updateBoardInput: UpdateBoardInput) {
+    return this.boardService.updateBoard(updateBoardInput.id, updateBoardInput);
+  }
+
+  @UseGuards(JWTAuthGuard)
+  @Query(() => [Board])
+  findStarredBoards(
+    @Context() context,
+    @Args('workspaceId') workspaceId: string,
+  ) {
+    const userId = context.req.user.id;
+    return this.boardService.findStarredBoards(workspaceId, userId);
   }
 }

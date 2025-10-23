@@ -96,13 +96,31 @@ export const CREATE_WORKSPACE_MUTATION = gql`
 `;
 
 export const GET_ALL_BOARDS = gql`
-  query GetAllBoards($workspaceId: String!) {
-    getAllBoards(workspaceId: $workspaceId) {
-      id
-      name
-      background
-      description
-      createdAt
+  query GetAllBoards(
+    $workspaceId: String!
+    $take: Int
+    $cursor: String
+    $sort: String
+    $search: String
+  ) {
+    getAllBoards(
+      workspaceId: $workspaceId
+      take: $take
+      cursor: $cursor
+      sort: $sort
+      search: $search
+    ) {
+      items {
+        id
+        name
+        background
+        description
+        createdAt
+        starred {
+          id
+        }
+      }
+      nextCursor
     }
   }
 `;
@@ -124,6 +142,109 @@ export const CREATE_BOARD = gql`
     ) {
       id
       name
+    }
+  }
+`;
+
+export const GET_STARRED_BOARDS = gql`
+  query FindStarredBoards($workspaceId: String!) {
+    findStarredBoards(workspaceId: $workspaceId) {
+      id
+      name
+      background
+    }
+  }
+`;
+
+export const TOGGLE_STARRED_BOARD = gql`
+  mutation ToggleStarredBoard($workspaceId: String!, $boardId: String!) {
+    toggleStarredBoard(
+      toggleStarredBoardInput: { workspaceId: $workspaceId, boardId: $boardId }
+    )
+  }
+`;
+
+export const GET_LISTS = gql`
+  query Lists($boardId: String!) {
+    list(boardId: $boardId) {
+      id
+      name
+      orderIndex
+    }
+  }
+`;
+
+export const GET_BOARD = gql`
+  query GetBoard($boardId: String!) {
+    getBoard(boardId: $boardId) {
+      name
+      background
+      members {
+        id
+        role
+        user {
+          id
+          fullName
+          avatar
+          username
+        }
+      }
+    }
+  }
+`;
+
+export const UPDATE_BOARD = gql`
+  mutation UpdateBoard(
+    $id: String!
+    $name: String
+    $background: String
+    $workspaceId: String
+    $description: String
+  ) {
+    updateBoard(
+      updateBoardInput: {
+        id: $id
+        name: $name
+        background: $background
+        workspaceId: $workspaceId
+        description: $description
+      }
+    ) {
+      name
+    }
+  }
+`;
+
+export const UPDATE_LIST = gql`
+  mutation UpdateList(
+    $id: String!
+    $name: String
+    $boardId: String
+    $orderIndex: Int
+  ) {
+    updateList(
+      updateListInput: {
+        id: $id
+        name: $name
+        boardId: $boardId
+        orderIndex: $orderIndex
+      }
+    ) {
+      name
+      orderIndex
+    }
+  }
+`;
+
+export const UPDATE_BOARD_MEMBER = gql`
+  mutation UpdateBoardMember($id: String!, $role: ROLE, $boardId: String!) {
+    updateBoardMember(
+      updateBoardMemberInput: { id: $id, role: $role }
+      boardId: $boardId
+    ) {
+      role
+
+      id
     }
   }
 `;

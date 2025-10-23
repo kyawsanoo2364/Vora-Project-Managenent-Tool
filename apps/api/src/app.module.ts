@@ -10,6 +10,8 @@ import { UserModule } from './user/user.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { MediaModule } from './media/media.module';
 import { BoardModule } from './board/board.module';
+import { ListModule } from './list/list.module';
+import { BoardMemberModule } from './board-member/board-member.module';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { BoardModule } from './board/board.module';
     WorkspaceModule,
     MediaModule,
     BoardModule,
+    ListModule,
+    BoardMemberModule,
   ],
   controllers: [AppController],
   providers: [AppService],

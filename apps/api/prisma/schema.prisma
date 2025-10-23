@@ -8,20 +8,22 @@ datasource db {
 }
 
 model user {
-  id            String       @id @default(uuid())
-  username      String       @unique
-  firstName     String
-  lastName      String
-  avatar        String?
-  email         String       @unique
-  password      String
-  uploadedFiles attachment[]
-  members       member[]
-  comments      comment[]
-  activities    activity[]
-  workspaces    workspace[]
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id               String            @id @default(uuid())
+  username         String            @unique
+  firstName        String
+  lastName         String
+  avatar           String?
+  email            String            @unique
+  password         String
+  uploadedFiles    attachment[]
+  workspaceMembers workspaceMember[]
+  boardMembers     boardMember[]
+  comments         comment[]
+  activities       activity[]
+  workspaces       workspace[]
+  starredBoards    starredBoard[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 enum Role {
@@ -31,50 +33,74 @@ enum Role {
 }
 
 model workspace {
-  id          String   @id @default(uuid())
-  name        String
-  boards      board[]
-  members     member[]
-  description String?
-  slug        String   @unique
-  logoId      String?  @unique
-  logo        media?   @relation(fields: [logoId], references: [id])
-  ownerId     String
-  owner       user     @relation(fields: [ownerId], references: [id])
-  settings    Json?
-  isPublic    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String            @id @default(uuid())
+  name          String
+  boards        board[]
+  members       workspaceMember[]
+  description   String?
+  slug          String            @unique
+  logoId        String?           @unique
+  logo          media?            @relation(fields: [logoId], references: [id])
+  ownerId       String
+  owner         user              @relation(fields: [ownerId], references: [id])
+  settings      Json?
+  isPublic      Boolean           @default(false)
+  starredBoards starredBoard[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
 }
 
-model member {
+model workspaceMember {
   id          String    @id @default(uuid())
   userId      String
-  user        user      @relation(fields: [userId], references: [id])
+  user        user      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspaceId String
-  workspace   workspace @relation(fields: [workspaceId], references: [id])
-  role        Role      @default(ADMIN)
-  card        card[]    @relation("cards_to_members")
-  createdAt   DateTime  @default(now())
+  workspace   workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+}
+
+model boardMember {
+  id        String   @id @default(uuid())
+  userId    String
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  boardId   String
+  board     board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now())
 }
 
 model board {
-  id          String    @id @default(uuid())
+  id          String         @id @default(uuid())
   name        String
   background  String
   description String?
   workspaceId String
-  workspace   workspace @relation(fields: [workspaceId], references: [id])
+  workspace   workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   list        list[]
+  starred     starredBoard[]
+  members     boardMember[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model starredBoard {
+  id          String    @id @default(uuid())
+  boardId     String
+  board       board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  workspaceId String
+  userId      String
+  user        user      @relation(fields: [userId], references: [id])
+  workspace   workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
 }
 
 model list {
   id         String @id @default(uuid())
   name       String
   boardId    String
-  board      board  @relation(fields: [boardId], references: [id])
+  board      board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
   orderIndex Int    @default(0)
   cards      card[]
 }
@@ -88,24 +114,24 @@ model card {
   dueDate     DateTime?
   checklists  checklist[]
   attachments attachment[]
-  members     member[]     @relation("cards_to_members")
+
   listId      String
-  list        list         @relation(fields: [listId], references: [id])
+  list        list       @relation(fields: [listId], references: [id], onDelete: Cascade)
   comments    comment[]
   orderIndex  Int
   activities  activity[]
-  isCompleted Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  isCompleted Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model comment {
   id        String   @id @default(uuid())
   content   String
   userId    String
-  user      user     @relation(fields: [userId], references: [id])
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   cardId    String
-  card      card     @relation(fields: [cardId], references: [id])
+  card      card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -115,7 +141,7 @@ model checklist {
   content     String
   isCompleted Boolean  @default(false)
   cardId      String
-  card        card     @relation(fields: [cardId], references: [id])
+  card        card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
   orderIndex  Int      @default(0)
   createdAt   DateTime @default(now())
 }
@@ -123,11 +149,11 @@ model checklist {
 model attachment {
   id         String @id @default(uuid())
   mediaId    String @unique
-  media      media  @relation(fields: [mediaId], references: [id])
+  media      media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
   userId     String
-  uploadedBy user   @relation(fields: [userId], references: [id])
+  uploadedBy user   @relation(fields: [userId], references: [id], onDelete: Cascade)
   cardId     String
-  card       card   @relation(fields: [cardId], references: [id])
+  card       card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 }
@@ -136,9 +162,9 @@ model activity {
   id        String   @id @default(uuid())
   action    String
   cardId    String
-  card      card     @relation(fields: [cardId], references: [id])
+  card      card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
   userId    String
-  user      user     @relation(fields: [userId], references: [id])
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
 
@@ -150,4 +176,16 @@ model media {
   workspace  workspace?
   attachment attachment?
   createdAt  DateTime    @default(now())
+}
+
+model workspaceInviteAudit {
+  id          String   @id @default(uuid())
+  token       String
+  workspaceId String
+  role        String
+  createdBy   String
+  usedBy      String?
+  usedAt      DateTime
+  revoked     Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }

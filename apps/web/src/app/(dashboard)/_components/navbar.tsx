@@ -9,6 +9,8 @@ import WorkspaceDropdownMenu from "./workspace-dorpdown-menu";
 import { Skeleton } from "@radix-ui/themes";
 
 import MobileMenuNavbar from "./mobile-menu-navbar";
+import Link from "next/link";
+import { getDefaultWorkspaceId } from "@/libs/utils/workspaceUrlStore";
 
 const Navbar = () => {
   const { user, isLoading } = useAuth();
@@ -16,7 +18,10 @@ const Navbar = () => {
   return (
     <div className="flex flex-row justify-between gap-4 px-2 py-2 w-full bg-gradient-to-r from-[#1A1A25] to-[#232334] border-b border-b-gray-600">
       <div className="flex flex-row gap-4 items-center">
-        <div className="md:border-r md:border-r-gray-700 md:pr-10 md:mr-4">
+        <Link
+          href={`/home/workspace/${getDefaultWorkspaceId()}`}
+          className="md:border-r md:border-r-gray-700 md:pr-10 md:mr-4"
+        >
           <Image
             src={"/logo2.png"}
             alt={"vora"}
@@ -24,7 +29,7 @@ const Navbar = () => {
             height={72}
             className="w-18 object-contain"
           />
-        </div>
+        </Link>
 
         <WorkspaceDropdownMenu />
       </div>

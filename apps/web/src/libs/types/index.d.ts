@@ -13,4 +13,22 @@ export type GetBoardDataType = {
   background: string;
   description?: string;
   createdAt: Date;
+  starred: Starred[];
+};
+
+export type Starred = {
+  id: string;
+};
+
+export type BoardMemberType = {
+  id: string;
+  role: string;
+  user: UserType;
+};
+
+export type GetSingleBoardType = {
+  id: string;
+  name: string;
+  background: string;
+  members: BoardMemberType[];
 };

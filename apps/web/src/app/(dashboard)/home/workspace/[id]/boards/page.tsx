@@ -3,6 +3,7 @@ import { ScrollArea } from "@radix-ui/themes";
 import React from "react";
 import BoardsList from "./_components/boards-list";
 import { Metadata } from "next";
+import StarredBoards from "./_components/starredboards";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -19,9 +20,10 @@ const BoardsPage = async ({ params }: Props) => {
     <ScrollArea
       scrollbars="vertical"
       className="w-full  flex flex-col gap-4 p-4 "
-      style={{ height: "100vh" }}
+      style={{ height: "89vh" }}
     >
       <h2 className="text-xl md:text-2xl font-semibold">Boards</h2>
+      <StarredBoards workspaceId={workspaceId} />
       <BoardsList workspaceId={workspaceId} />
     </ScrollArea>
   );
