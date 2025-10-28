@@ -22,6 +22,7 @@ model user {
   activities       activity[]
   workspaces       workspace[]
   starredBoards    starredBoard[]
+  createdInvites   inviteLink[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -46,8 +47,9 @@ model workspace {
   settings      Json?
   isPublic      Boolean           @default(false)
   starredBoards starredBoard[]
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model workspaceMember {
@@ -81,8 +83,9 @@ model board {
   list        list[]
   starred     starredBoard[]
   members     boardMember[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model starredBoard {
@@ -178,14 +181,26 @@ model media {
   createdAt  DateTime    @default(now())
 }
 
-model workspaceInviteAudit {
-  id          String   @id @default(uuid())
-  token       String
-  workspaceId String
+enum InviteRole {
+  ADMIN
+  MEMBER
+}
+
+model inviteLink {
+  id          String     @id @default(uuid())
+  tokenHash   String
+  scope       String
+  scopeId     String
   role        String
-  createdBy   String
-  usedBy      String?
-  usedAt      DateTime
-  revoked     Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  createdById String
+  maxUses     Int?
+  usedCount   Int        @default(0)
+  expiresAt   DateTime?
+  revoked     Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  createdBy user @relation(fields: [createdById], references: [id])
+
+
 }

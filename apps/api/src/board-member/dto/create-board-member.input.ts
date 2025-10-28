@@ -5,4 +5,7 @@ import { ROLE } from 'src/utils/types/role.enum';
 export class CreateBoardMemberInput {
   @Field(() => ROLE)
   role: ROLE;
+
+  @Field()
+  userId: string;
 }

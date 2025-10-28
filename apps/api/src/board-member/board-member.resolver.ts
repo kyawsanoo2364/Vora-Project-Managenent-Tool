@@ -12,12 +12,21 @@ import { BoardRole } from 'src/common/board-permission/board.role.decorator';
 export class BoardMemberResolver {
   constructor(private readonly boardMemberService: BoardMemberService) {}
 
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
   @Mutation(() => BoardMember)
   createBoardMember(
     @Args('createBoardMemberInput')
     createBoardMemberInput: CreateBoardMemberInput,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
   ) {
-    return this.boardMemberService.create(createBoardMemberInput);
+    const currentUserId = context.req.user.id;
+    return this.boardMemberService.create(
+      createBoardMemberInput,
+      boardId,
+      currentUserId,
+    );
   }
 
   @UseGuards(JWTAuthGuard)
@@ -44,8 +53,14 @@ export class BoardMemberResolver {
     );
   }
 
-  @Mutation(() => BoardMember)
-  removeBoardMember(@Args('id', { type: () => Int }) id: number) {
-    return this.boardMemberService.remove(id);
+  @UseGuards(JWTAuthGuard)
+  @Mutation(() => String)
+  removeBoardMember(
+    @Args('id') id: string,
+
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.boardMemberService.remove(id, userId);
   }
 }

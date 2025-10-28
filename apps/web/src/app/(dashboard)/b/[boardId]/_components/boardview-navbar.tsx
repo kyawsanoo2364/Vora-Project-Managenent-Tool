@@ -130,7 +130,9 @@ const BoardViewNavbar = ({
               ))}
               {board?.members?.length > 3 && (
                 <Avatar className="size-6 cursor-pointer">
-                  <AvatarFallback className="text-[12px]">+4</AvatarFallback>
+                  <AvatarFallback className="text-[12px]">
+                    +{board.members.length - 3}
+                  </AvatarFallback>
                 </Avatar>
               )}
             </div>

@@ -10,6 +10,30 @@ export class UserService {
     return 'This action adds a new user';
   }
 
+  async findByNameOrEmail(searchTerms: string) {
+    const users = await this.prisma.user.findMany({
+      where: {
+        OR: [
+          {
+            firstName: {
+              contains: searchTerms,
+            },
+          },
+          {
+            email: {
+              contains: searchTerms,
+            },
+          },
+        ],
+      },
+      take: 8,
+    });
+
+    return [
+      ...users.map((u) => ({ ...u, fullName: `${u.firstName} ${u.lastName}` })),
+    ];
+  }
+
   findAll() {
     return `This action returns all user`;
   }

@@ -248,3 +248,133 @@ export const UPDATE_BOARD_MEMBER = gql`
     }
   }
 `;
+
+export const CREATE_OR_GET_INVITE_LINK = gql`
+  mutation CreateInviteLink($scope: String!, $scopeId: String!, $role: ROLE) {
+    createInviteLink(
+      createInviteLinkInput: { scope: $scope, scopeId: $scopeId, role: $role }
+    ) {
+      inviteLink
+    }
+  }
+`;
+
+export const GET_INVITE_USING_SCOPE_ID = gql`
+  query getInvite($scopeId: String!) {
+    getInvite(scopeId: $scopeId) {
+      id
+    }
+  }
+`;
+
+export const CONFIRM_INVITE_LINK = gql`
+  query confirm($scopeId: String!, $token: String!) {
+    confirmLink(scopeId: $scopeId, token: $token) {
+      invitedBy
+      scopeName
+      scopeType
+      alreadyJoined
+    }
+  }
+`;
+
+export const ACCEPT_INVITE_LINK = gql`
+  mutation Accept($token: String!) {
+    acceptLink(token: $token)
+  }
+`;
+
+export const REVOKE_INVITE_LINK = gql`
+  mutation revoke($scopeId: String!) {
+    revokeLink(scopeId: $scopeId)
+  }
+`;
+
+export const GET_WORKSPACE_MEMBER = gql`
+  query GetMember($workspaceId: String!) {
+    getMember(workspaceId: $workspaceId) {
+      role
+      id
+      userId
+    }
+  }
+`;
+
+export const GET_ALL_WORKSPACE_MEMBERS = gql`
+  query getAllWorkspaceMember($workspaceId: String!) {
+    getAllWorkspaceMember(workspaceId: $workspaceId) {
+      id
+      role
+      user {
+        id
+        email
+        fullName
+        username
+      }
+    }
+  }
+`;
+
+export const UPDATE_WORKSPACE_MEMBER_ROLE = gql`
+  mutation UpdateWorkspaceMemberRole(
+    $id: String!
+    $role: String!
+    $workspaceId: String!
+  ) {
+    updateWorkspaceMemberRole(id: $id, role: $role, workspaceId: $workspaceId) {
+      id
+    }
+  }
+`;
+
+export const REMOVE_WORKSPACE_MEMBER = gql`
+  mutation RemoveWorkspaceMember($id: String!, $workspaceId: String!) {
+    removeWorkspaceMember(id: $id, workspaceId: $workspaceId)
+  }
+`;
+
+export const GET_USERS_BY_NAME_OR_EMAIL = gql`
+  query GetUserByNameOrEmail($searchTerms: String!) {
+    getUsersByNameOrEmail(searchTerms: $searchTerms) {
+      id
+      fullName
+      email
+      avatar
+      username
+    }
+  }
+`;
+
+export const INVITE_LINK_USING_MAIL = gql`
+  mutation InviteLinkUsingMail(
+    $role: ROLE
+    $scope: String!
+    $scopeId: String!
+    $email: String!
+  ) {
+    inviteLinkUsingMail(
+      inviteToEmailInput: {
+        role: $role
+        scope: $scope
+        scopeId: $scopeId
+        email: $email
+      }
+    )
+  }
+`;
+
+export const CREATE_BOARD_MEMBER = gql`
+  mutation createBoardMember(
+    $role: ROLE!
+    $userId: String!
+    $boardId: String!
+  ) {
+    createBoardMember(
+      createBoardMemberInput: { role: $role, userId: $userId }
+      boardId: $boardId
+    ) {
+      id
+      role
+    }
+  }
+`;

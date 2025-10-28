@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= appName || 'App' %> | Board Invite</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ------------------- */
+    /* --- CSS Reset --- */
+    /* ------------------- */
+    body { margin:0; padding:0; font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background:#f0f3f6; color:#1f2937; -webkit-text-size-adjust:100%; }
+    table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+    img { display:block; max-width:100%; border:0; }
+    a { text-decoration:none; color:#3b82f6; }
+    
+    /* Global Styles */
+    .text-base { font-size:15px; line-height:1.6; color:#4b5563; }
+    .text-sm { font-size:13px; line-height:1.4; color:#6b7280; }
+    .text-xs { font-size:12px; color:#9ca3af; }
+
+    /* Card & Container */
+    .container-wrapper { padding:32px 16px; }
+    .container { max-width:600px; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 8px 16px -4px rgba(0,0,0,0.1), 0 0 4px rgba(0,0,0,0.05); }
+
+    /* Header & Footer Separators */
+    .separator-top { border-top:1px solid #e5e7eb; }
+    .separator-bottom { border-bottom:1px solid #e5e7eb; }
+
+    /* Primary Button */
+    .btn { background:#3b82f6; color:#ffffff !important; font-weight:600; font-size:16px; padding:14px 28px; border-radius:10px; display:inline-block; border:1px solid #3b82f6; transition:background-color 0.2s; }
+    .btn:hover { background:#2563eb; border-color:#2563eb; }
+
+    /* Custom Message Blockquote */
+    .blockquote { margin:0 0 20px 0; padding:14px 18px; background:#eef2ff; border-left:4px solid #3b82f6; border-radius:4px; color:#1f2937; font-style:italic; }
+
+    /* Board Info Card */
+    .info-card { background:#f9fafb; border:1px solid #f3f4f6; border-radius:10px; padding:16px 20px; }
+
+    /* ----------------------- */
+    /* --- Responsive CSS --- */
+    /* ----------------------- */
+    @media screen and (max-width: 600px) {
+      .container-wrapper { padding:24px 16px !important; }
+      .container { width: 100% !important; border-radius:0 !important; }
+      .btn { width: 100% !important; text-align: center !important; padding:12px 24px !important; }
+      .header-logo { font-size:24px !important; }
+      .header-info { text-align:left !important; display:block !important; width:100% !important; margin-top:10px; }
+      .info-card td { display:block !important; width:100% !important; text-align:left !important; }
+      .info-card td + td { margin-top:12px; }
+    }
+
+    /* --------------------- */
+    /* --- Dark Mode CSS --- */
+    /* --------------------- */
+    @media (prefers-color-scheme: dark) {
+      body { background:#111827 !important; color:#e5e7eb !important; }
+      .container { background:#1f2937 !important; box-shadow:0 8px 16px -4px rgba(0,0,0,0.3), 0 0 4px rgba(0,0,0,0.1) !important; }
+      .separator-top, .separator-bottom { border-color:#374151 !important; }
+      .text-base { color:#d1d5db !important; }
+      .text-sm { color:#9ca3af !important; }
+      .text-xs { color:#6b7280 !important; }
+      .main-heading { color:#f9fafb !important; }
+      .strong-text { color:#f9fafb !important; }
+      .btn { background:#3b82f6 !important; border-color:#3b82f6 !important; color:#ffffff !important; }
+      .btn:hover { background:#60a5fa !important; border-color:#60a5fa !important; }
+      .blockquote { background:#374151 !important; border-left-color:#60a5fa !important; color:#e5e7eb !important; }
+      .info-card { background:#1f2937 !important; border-color:#374151 !important; }
+      .info-card-label { color:#9ca3af !important; }
+      .info-card-value { color:#f9fafb !important; }
+      .header-info strong { color:#f9fafb !important; }
+      a { color:#60a5fa !important; }
+    }
+  </style>
+</head>
+<body>
+  <div style="display:none; max-height:0; overflow:hidden; color:#f0f3f6;">
+    <%= inviterName %> invited you to join the board <%= boardName %> in <%= workspaceName %>.
+  </div>
+
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+    <tr>
+      <td align="center" class="container-wrapper">
+        <table class="container" width="600" cellpadding="0" cellspacing="0" role="presentation">
+          
+          <tr>
+            <td style="padding:24px 28px;" class="separator-bottom">
+              <table width="100%" role="presentation">
+                <tr>
+                  <td align="left" style="line-height:1;">
+                    <% if (logoUrl) { %>
+                      <img src="<%= logoUrl %>" alt="<%= appName %> Logo" style="height:45px;object-fit:contain;">
+                    <% } else { %>
+                      <div class="header-logo" style="font-weight:700; font-size:24px; color:#172b4d;"><%= appName || 'App' %></div>
+                    <% } %>
+                  </td>
+                  <td align="right" class="header-info text-sm" style="vertical-align:middle;">
+                    Invited by <strong class="strong-text" style="color:#172b4d;"><%= inviterName %></strong>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:32px 28px;">
+              <h1 class="main-heading" style="margin:0 0 16px 0; font-size:24px; color:#172b4d; font-weight:700;">
+                You're invited to a board!
+              </h1>
+
+              <p class="text-base" style="margin:0 0 20px 0;">
+                Hello <strong><%= recipientName || 'there' %></strong>,
+              </p>
+              
+              <p class="text-base" style="margin:0 0 20px 0;">
+                <%= inviterName %> has invited you to join the board 
+                <strong class="strong-text" style="color:#172b4d;"><%= boardName %></strong>
+                in the workspace **<%= workspaceName %>**.
+              </p>
+
+              <% if (typeof customMessage !== 'undefined' && customMessage) { %>
+                <div class="blockquote">
+                  <p style="margin:0; font-size:15px; line-height:1.6;"><%= customMessage %></p>
+                </div>
+              <% } %>
+
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" class="info-card" style="margin:20px 0;">
+                <tr>
+                  <td width="50%" style="padding-right:10px;">
+                    <div class="info-card-label" style="font-size:13px; color:#6b7280; margin-bottom:4px; font-weight:500;">Board Name</div>
+                    <div class="info-card-value" style="font-weight:600; font-size:16px; color:#172b4d;"><%= boardName %></div>
+                  </td>
+                  <td width="50%" align="right" style="padding-left:10px;">
+                    <div class="info-card-label" style="font-size:13px; color:#6b7280; margin-bottom:4px; font-weight:500;">Your Role</div>
+                    <div class="info-card-value" style="font-weight:600; font-size:16px; color:#172b4d;"><%= role || 'Member' %></div>
+                  </td>
+                </tr>
+              </table>
+
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="<%= acceptLink %>" class="btn">Accept Invitation</a>
+                    </td>
+                </tr>
+              </table>
+
+              <p class="text-sm" style="margin:0 0 10px 0; line-height:1.4;">
+                If the button above doesn't work, copy and paste this link into your browser:<br>
+                <a href="<%= acceptLink %>" style="word-break:break-all;"><%= acceptLink %></a>
+              </p>
+
+              <% if (typeof declineLink !== "undefined" && declineLink) { %>
+                <p class="text-sm" style="margin:0 0 10px 0;">
+                  Alternatively, you may <a href="<%= declineLink %>">decline the invitation</a>.
+                </p>
+              <% } %>
+
+              <% if (typeof expirationDate !== "undefined" && expirationDate) { %>
+                <p class="text-xs" style="margin:16px 0 0 0;">
+                  This invitation will expire on <strong><%= expirationDate %></strong>.
+                </p>
+              <% } %>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:20px 28px;" class="separator-top">
+              <table width="100%" role="presentation">
+                <tr>
+                  <td width="50%" style="padding-right:10px;" class="text-sm">
+                    <strong><%= appName || 'App' %></strong> · <%= workspaceName %><br>
+                    Need assistance? Contact our support team at <a href="mailto:<%= supportEmail %>"><%= supportEmail %></a>
+                  </td>
+                  <td width="50%" align="right" class="text-xs" style="padding-left:10px;">
+                    <span style="display:block; margin-bottom:4px;"><%= footerText || 'If you didn’t expect this invitation, you can safely ignore this email.' %></span>
+                    Sent to: <%= recipientEmail %>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocalStorage } from "@/hooks/use-localstorage";
 import { CreateWorkspaceFormSchema } from "@/libs/schemas/create-workspace-form.schema";
 import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
 import {
@@ -7,10 +8,7 @@ import {
   GET_ALL_MY_WORKSPACE,
 } from "@/libs/utils/queryStringGraphql";
 import { uploadFile } from "@/libs/utils/uploadFile";
-import {
-  getDefaultWorkspaceId,
-  setDefaultWorkspaceId,
-} from "@/libs/utils/workspaceUrlStore";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Box,
@@ -48,6 +46,9 @@ const WorkspaceDropdownMenu = () => {
   const pathname = usePathname();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [getDefaultWorkspaceId, setDefaultWorkspaceId] = useLocalStorage<
+    string | null
+  >("vora_workspace_id", null);
   const [currentWorkspace, setCurrentWorkSpace] = useState<any | null>(null);
   const [previewLogo, setPreviewLogo] = useState<string | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -74,8 +75,8 @@ const WorkspaceDropdownMenu = () => {
   });
 
   useEffect(() => {
-    if (getDefaultWorkspaceId() && pathname === "/home") {
-      router.push(`/home/workspace/${getDefaultWorkspaceId()}`);
+    if (getDefaultWorkspaceId && pathname === "/home") {
+      router.push(`/home/workspace/${getDefaultWorkspaceId}`);
     }
   }, []);
 
@@ -153,11 +154,11 @@ const WorkspaceDropdownMenu = () => {
 
   useEffect(() => {
     if (
-      getDefaultWorkspaceId() &&
+      getDefaultWorkspaceId &&
       getAllWorkspace.data?.get_all_my_workspaces?.length > 0
     ) {
       const workspaceData = getAllWorkspace.data.get_all_my_workspaces.find(
-        (data: any) => data.id === getDefaultWorkspaceId(),
+        (data: any) => data.id === getDefaultWorkspaceId,
       );
 
       setCurrentWorkSpace(workspaceData);

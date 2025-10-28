@@ -4,12 +4,12 @@ import { cookies } from "next/headers";
 import { fetchGraphQL } from "./fetchGraphql";
 import { setTokenCookies } from "./cookie";
 import { universalRedirect } from "./universalRedirect";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 export const fetchWithAuth = async (
   query: string,
   variables?: Record<string, any>,
   options: RequestInit = {},
+  fallback?: () => void,
 ) => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("vora_access_token")?.value;
@@ -45,8 +45,12 @@ export const fetchWithAuth = async (
         if (!refreshRes.ok) {
           cookieStore.delete("vora_access_token");
           cookieStore.delete("vora_refresh_token");
-
-          universalRedirect("/signin");
+          // await fetch("/api/auth/logout", { method: "POST" });
+          if (fallback) {
+            fallback();
+          } else {
+            universalRedirect("/signin");
+          }
           return;
         }
         const result = await refreshRes.json();
@@ -61,8 +65,11 @@ export const fetchWithAuth = async (
         });
       } catch (error) {
         console.log(error);
-
-        universalRedirect("/signin");
+        if (fallback) {
+          fallback();
+        } else {
+          universalRedirect("/signin");
+        }
         throw error;
       }
     }

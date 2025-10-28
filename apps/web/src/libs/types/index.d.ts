@@ -32,3 +32,10 @@ export type GetSingleBoardType = {
   background: string;
   members: BoardMemberType[];
 };
+
+export type WorkspaceMemberType = {
+  id: string;
+  role: string;
+  userId: string;
+  user: UserType;
+};

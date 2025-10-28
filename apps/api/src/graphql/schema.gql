@@ -67,10 +67,35 @@ type List {
   orderIndex: Int!
 }
 
+type InviteLink {
+  inviteLink: String!
+}
+
+type FindInviteLink {
+  id: String
+}
+
+type ConfirmInvite {
+  invitedBy: String
+  scopeName: String
+  scopeType: String!
+  alreadyJoined: Boolean!
+}
+
+type WorkspaceMember {
+  id: String!
+  role: String!
+  workspaceId: String!
+  userId: String!
+  user: User!
+  createdAt: DateTime!
+}
+
 type Query {
   authWelcome: String!
   refreshToken(refreshToken: String!): Auth!
   user: User!
+  getUsersByNameOrEmail(searchTerms: String!): [User!]!
   get_all_my_workspaces: [Workspace!]!
   workspace(id: Int!): Workspace!
   getAllBoards(workspaceId: String!, take: Int! = 10, cursor: String, sort: String, search: String): PaginatedType!
@@ -78,6 +103,11 @@ type Query {
   findStarredBoards(workspaceId: String!): [Board!]!
   list(boardId: String!): [List!]!
   boardMembers(boardId: String!): [BoardMember!]!
+  confirmLink(scopeId: String!, token: String!): ConfirmInvite!
+  inviteLink: String!
+  getInvite(scopeId: String!): FindInviteLink!
+  getMember(workspaceId: String!): WorkspaceMember!
+  getAllWorkspaceMember(workspaceId: String!): [WorkspaceMember!]!
 }
 
 type PaginatedType {
@@ -100,9 +130,15 @@ type Mutation {
   createList(createListInput: CreateListInput!): List!
   updateList(updateListInput: UpdateListInput!): List!
   removeList(id: Int!): List!
-  createBoardMember(createBoardMemberInput: CreateBoardMemberInput!): BoardMember!
+  createBoardMember(createBoardMemberInput: CreateBoardMemberInput!, boardId: String!): BoardMember!
   updateBoardMember(updateBoardMemberInput: UpdateBoardMemberInput!, boardId: String!): BoardMember!
-  removeBoardMember(id: Int!): BoardMember!
+  removeBoardMember(id: String!): String!
+  createInviteLink(createInviteLinkInput: CreateInviteLinkInput!): InviteLink!
+  acceptLink(token: String!): String!
+  revokeLink(scopeId: String!): String!
+  inviteLinkUsingMail(inviteToEmailInput: InviteToEmailInput!): String!
+  updateWorkspaceMemberRole(id: String!, role: String!, workspaceId: String!): WorkspaceMember!
+  removeWorkspaceMember(id: String!, workspaceId: String!): String!
 }
 
 input SignInInput {
@@ -176,6 +212,7 @@ input UpdateListInput {
 
 input CreateBoardMemberInput {
   role: ROLE!
+  userId: String!
 }
 
 enum ROLE {
@@ -186,5 +223,21 @@ enum ROLE {
 
 input UpdateBoardMemberInput {
   role: ROLE
+  userId: String
   id: String!
+}
+
+input CreateInviteLinkInput {
+  scope: String!
+  scopeId: String!
+  role: ROLE! = MEMBER
+  maxUses: Int
+}
+
+input InviteToEmailInput {
+  scope: String!
+  scopeId: String!
+  role: ROLE! = MEMBER
+  maxUses: Int
+  email: String!
 }

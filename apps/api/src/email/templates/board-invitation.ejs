@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>You've Been Invited to a Board!</title>
+    <style>
+      /* Basic Reset and Typography */
+      body {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f6ff;
+        color: #333333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      }
+      h1 {
+        color: #2196f3;
+        font-size: 26px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eeeeee;
+        padding-bottom: 10px;
+      }
+      p {
+        line-height: 1.6;
+        margin-bottom: 18px;
+      }
+
+      /* Action Button Styling */
+      .button-container {
+        text-align: center;
+        margin: 40px 0;
+      }
+      .action-button {
+        display: inline-block;
+        padding: 14px 30px;
+        background-color: #4caf50; /* Primary Green */
+        color: #ffffff !important;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        font-size: 17px;
+        letter-spacing: 0.5px;
+        transition: background-color 0.3s ease;
+      }
+      .action-button:hover {
+        background-color: #45a049;
+      }
+
+      /* Footer/Signoff Styling */
+      .footer {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #eeeeee;
+        font-size: 13px;
+        color: #999999;
+        text-align: center;
+      }
+      .footer p {
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div
+        style="
+          display: flex;
+          flex-direction: row;
+          width: 100%;
+          justify-content: center;
+          align-items: center;
+          margin: 10px;
+        "
+      >
+        <img
+          src="<%= logoUrl %>"
+          alt="logo"
+          style="height: 45px; object-fit: cover"
+        />
+      </div>
+      <h1>Invitation to Join **<%= boardName %>**</h1>
+
+      <p>Hello,</p>
+
+      <p>
+        You have been invited by **<%= adminName %>** to join the project board:
+        **<%= boardName %>**.
+      </p>
+
+      <p>
+        This is where we track our tasks, share documents, and collaborate on
+        the project. We're excited to have your contributions!
+      </p>
+
+      <p>
+        Click the button below to **accept your invitation and get started**
+        immediately:
+      </p>
+
+      <div class="button-container">
+        <a href="<%= boardUrl %>" class="action-button" target="_blank"
+          >Go to Board</a
+        >
+      </div>
+
+      <p style="font-size: 14px; text-align: center">
+        If the button above doesn't work, copy and paste this link into your
+        browser:
+      </p>
+      <p style="word-break: break-all; font-size: 12px; text-align: center">
+        <a href="<%= boardUrl %>"><%= boardUrl %></a>
+      </p>
+
+      <div class="footer">
+        <p>Need help? Contact **<%= adminEmail %>**.</p>
+        <p>&copy; <%= new Date().getFullYear() %> Vora.</p>
+      </div>
+    </div>
+  </body>
+</html>

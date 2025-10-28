@@ -9,11 +9,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SignUp } from "@/libs/actions/signup.actions";
 import toast from "react-hot-toast";
 import { Loader2Icon } from "lucide-react";
-import { redirect } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 
 type FormData = z.infer<typeof SignUpFormSchema>;
 
 const SignUpForm = () => {
+  const router = useRouter();
   const {
     register,
     formState: { errors, isSubmitting },
@@ -28,6 +29,8 @@ const SignUpForm = () => {
       password: "",
     },
   });
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callback");
 
   const onSubmit = async (data: FormData) => {
     const result = await SignUp(data);
@@ -36,7 +39,11 @@ const SignUpForm = () => {
       return;
     }
     toast.success(result.message);
-    redirect("/signin");
+    if (callbackUrl) {
+      router.replace(callbackUrl);
+    } else {
+      router.replace("/signin");
+    }
   };
 
   return (
@@ -129,7 +136,14 @@ const SignUpForm = () => {
       <div className="mt-2 ">
         <p className="text-sm text-slate-500">
           Already have an account? Please{" "}
-          <Link href={"/signin"} className="text-blue-500 hover:underline">
+          <Link
+            href={
+              callbackUrl
+                ? `/signin?callback=${encodeURIComponent(callbackUrl)}`
+                : "/signin"
+            }
+            className="text-blue-500 hover:underline"
+          >
             Sign In
           </Link>
           .

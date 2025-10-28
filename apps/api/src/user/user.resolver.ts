@@ -22,6 +22,12 @@ export class UserResolver {
     return this.userService.getUser(userId);
   }
 
+  @UseGuards(JWTAuthGuard)
+  @Query(() => [User])
+  getUsersByNameOrEmail(@Args('searchTerms') searchTerms: string) {
+    return this.userService.findByNameOrEmail(searchTerms);
+  }
+
   @Mutation(() => User)
   updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
     return this.userService.update(updateUserInput.id, updateUserInput);

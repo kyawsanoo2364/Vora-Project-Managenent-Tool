@@ -12,6 +12,10 @@ import { MediaModule } from './media/media.module';
 import { BoardModule } from './board/board.module';
 import { ListModule } from './list/list.module';
 import { BoardMemberModule } from './board-member/board-member.module';
+import { RedisModule } from './common/redis/redis.module';
+import { InviteLinkModule } from './invite-link/invite-link.module';
+import { WorkspaceMemberModule } from './workspace-member/workspace-member.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -30,6 +34,10 @@ import { BoardMemberModule } from './board-member/board-member.module';
     BoardModule,
     ListModule,
     BoardMemberModule,
+    // RedisModule,
+    InviteLinkModule,
+    WorkspaceMemberModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

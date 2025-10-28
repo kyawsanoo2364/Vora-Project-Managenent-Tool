@@ -8,13 +8,67 @@ import { CreateBoardMemberInput } from './dto/create-board-member.input';
 import { UpdateBoardMemberInput } from './dto/update-board-member.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Role } from '@prisma/client';
+import { EmailService } from 'src/email/email.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class BoardMemberService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private emailService: EmailService,
+    private configService: ConfigService,
+  ) {}
 
-  create(createBoardMemberInput: CreateBoardMemberInput) {
-    return 'This action adds a new boardMember';
+  async create(
+    createBoardMemberInput: CreateBoardMemberInput,
+    boardId: string,
+    currentUserId: string,
+  ) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { id: createBoardMemberInput.userId },
+    });
+    if (!existingUser)
+      throw new BadRequestException(
+        'User not found in Vora. Please Sign up or invite this user with email.',
+      );
+    // current logged in user
+    const currentUser = await this.prisma.user.findUnique({
+      where: { id: currentUserId },
+    });
+    if (!currentUser) throw new UnauthorizedException();
+
+    const existingMember = await this.prisma.boardMember.findFirst({
+      where: {
+        userId: createBoardMemberInput.userId,
+        boardId: boardId,
+      },
+    });
+    if (existingMember)
+      throw new BadRequestException('user has already joined board member.');
+
+    const newMember = await this.prisma.boardMember.create({
+      data: {
+        ...createBoardMemberInput,
+        boardId,
+      },
+      include: {
+        board: true,
+      },
+    });
+
+    try {
+      await this.emailService.sendBoardInvitation(existingUser.email, {
+        boardName: newMember.board.name,
+        adminName: `${currentUser.firstName} ${currentUser.lastName}`,
+        boardUrl: `${this.configService.get('FRONTEND_URL') || 'http://localhost:3000'}/b/${boardId}`,
+        logoUrl: this.configService.get('APP_LOGO_URL')!,
+        adminEmail: currentUser.email,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+
+    return newMember;
   }
 
   async findAll(boardId: string) {
@@ -84,7 +138,40 @@ export class BoardMemberService {
     return updatedBoardMember;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} boardMember`;
+  async remove(id: string, userId: string) {
+    //get for delete member info
+    const existingBoardMember = await this.prisma.boardMember.findUnique({
+      where: { id },
+    });
+    //check if already or not!
+    if (!existingBoardMember)
+      throw new BadRequestException(
+        'This member is not exists or already removed.',
+      );
+
+    // get current logged in user board member.
+    const member = await this.prisma.boardMember.findFirst({
+      where: {
+        boardId: existingBoardMember.boardId,
+        userId,
+      },
+    });
+    if (!member) throw new ForbiddenException('You are not this board member.');
+    //if member role is admin, can delete all members.
+    if (member.role === 'ADMIN') {
+      await this.prisma.boardMember.delete({ where: { id } });
+    } else {
+      //if member is member or viewer,they can only delete their self.
+
+      //check current logged in user is equal delete user member
+      if (existingBoardMember.userId === userId) {
+        await this.prisma.boardMember.delete({ where: { id } });
+      } else {
+        throw new ForbiddenException(
+          'You only your self leave from this board.',
+        );
+      }
+    }
+    return 'Successfully! removed member or left.';
   }
 }

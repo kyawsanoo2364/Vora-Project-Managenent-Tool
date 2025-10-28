@@ -25,13 +25,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tab";
 import { useAuth } from "@/libs/providers/auth.provider";
 import { BoardMemberType, UserType } from "@/libs/types";
 import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
-import { initialAvatarText } from "@/libs/utils/helpers";
-import { UPDATE_BOARD_MEMBER } from "@/libs/utils/queryStringGraphql";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { cn, initialAvatarText } from "@/libs/utils/helpers";
+import {
+  CREATE_BOARD_MEMBER,
+  GET_USERS_BY_NAME_OR_EMAIL,
+  INVITE_LINK_USING_MAIL,
+  UPDATE_BOARD_MEMBER,
+} from "@/libs/utils/queryStringGraphql";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { PlusIcon, UserPlus2 } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import BoardMemberInviteLink from "./board-member-invite-link";
+import { useDebounce } from "@/libs/hooks/useDebounce";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/modern-ui/popover";
 
 const BoardInviteMemberDialog = ({
   members,
@@ -41,10 +53,81 @@ const BoardInviteMemberDialog = ({
   boardId: string;
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const searchValueDebounced = useDebounce(searchTerm, 500);
   const { user } = useAuth();
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
   const getUserRole = useCallback(() => {
     return members.find((u) => u.user.id === user?.id)?.role;
   }, [user, members]);
+  const [selectedRole, setSelectedRole] = useState("MEMBER");
+
+  const queryClient = useQueryClient();
+
+  const usersQuery = useQuery({
+    queryKey: ["get_user_by_name_or_email", boardId, searchValueDebounced],
+    queryFn: async () =>
+      (
+        await fetchWithAuth(GET_USERS_BY_NAME_OR_EMAIL, {
+          searchTerms: searchValueDebounced,
+        })
+      )?.getUsersByNameOrEmail,
+  });
+
+  const inviteLinkToEmail = useMutation({
+    mutationFn: async ({ to, role }: { to: string; role: string }) =>
+      await fetchWithAuth(INVITE_LINK_USING_MAIL, {
+        scope: "board",
+        scopeId: boardId,
+        role,
+        email: to,
+      }),
+    onSuccess: () => {
+      setSearchTerm("");
+      setSelectedEmail(null);
+      toast.success("Successfully! invitation link sent.");
+    },
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
+  });
+
+  const directInviteExistingUser = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) =>
+      await fetchWithAuth(CREATE_BOARD_MEMBER, { userId, role, boardId }),
+    onSuccess: () => {
+      toast.success("Successfully! Invited board member.");
+      queryClient.invalidateQueries({ queryKey: ["board", boardId] });
+      setSearchTerm("");
+      setSelectedUserId(null);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
+  });
+
+  useEffect(() => {
+    if (searchValueDebounced.length === 0) {
+      setSelectedUserId(null);
+      setSelectedEmail(null);
+    }
+  }, [searchValueDebounced]);
+
+  function isValidEmail(email: string) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  }
+
+  const onInviteClick = () => {
+    if (selectedEmail) {
+      inviteLinkToEmail.mutate({ to: selectedEmail, role: selectedRole });
+    } else if (selectedUserId) {
+      directInviteExistingUser.mutate({
+        userId: selectedUserId,
+        role: selectedRole,
+      });
+    }
+  };
 
   return (
     <Dialog>
@@ -65,25 +148,66 @@ const BoardInviteMemberDialog = ({
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
-          <Select defaultValue={"member"}>
+          <Select value={selectedRole} onValueChange={setSelectedRole}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="member">Member</SelectItem>
-              <SelectItem value="viewer">Viewer</SelectItem>
+              <SelectItem value="MEMBER">Member</SelectItem>
+              <SelectItem value="VIEWER">Viewer</SelectItem>
             </SelectContent>
           </Select>
-          <Button className="bg-blue-500 text-white hover:bg-blue-600">
+          <Button
+            disabled={
+              directInviteExistingUser.isPending
+                ? directInviteExistingUser.isPending
+                : inviteLinkToEmail.isPending || selectedUserId
+                  ? !selectedUserId
+                  : !selectedEmail
+            }
+            className="bg-blue-500 text-white hover:bg-blue-600"
+            onClick={onInviteClick}
+          >
             <PlusIcon />
-            Invite
+            {inviteLinkToEmail.isPending || directInviteExistingUser.isPending
+              ? "Inviting..."
+              : "Invite"}
           </Button>
         </div>
-        {searchTerm?.length > 0 && (
+        {searchValueDebounced?.length > 0 && (
           <ScrollArea className="w-full h-32">
-            <InviteMemberItem fullName="Ai Kayan" username="aikayan" />
+            {!usersQuery.isLoading && usersQuery.data?.length === 0 ? (
+              isValidEmail(searchValueDebounced) ? (
+                <InviteMemberItem
+                  fullName={searchValueDebounced}
+                  username="user"
+                  onClick={() => setSelectedEmail(searchValueDebounced)}
+                  isSelected={searchValueDebounced === selectedEmail}
+                />
+              ) : (
+                <div className="flex flex-col justify-center items-center w-full h-32">
+                  <h3 className="text-base font-medium text-slate-500 text-center">
+                    Looks like that person isn't a Vora member yet. Add their
+                    email address and invite them.
+                  </h3>
+                </div>
+              )
+            ) : (
+              usersQuery.data?.map((user: UserType, i: number) => (
+                <InviteMemberItem
+                  fullName={user.fullName}
+                  username={user.username}
+                  avatar={user.avatar}
+                  key={i}
+                  onClick={() => setSelectedUserId(user.id)}
+                  isSelected={selectedUserId === user.id}
+                />
+              ))
+            )}
           </ScrollArea>
         )}
+
+        <BoardMemberInviteLink boardId={boardId} />
         <Separator className="my-2" />
         <Tabs defaultValue="members">
           <TabsList>
@@ -117,13 +241,23 @@ const InviteMemberItem = ({
   fullName,
   avatar,
   username,
+  onClick,
+  isSelected,
 }: {
   fullName: string;
   avatar?: string;
   username: string;
+  onClick?: () => void;
+  isSelected?: boolean;
 }) => {
   return (
-    <div className="flex flex-row gap-2 items-center w-full hover:bg-gray-100/10 p-2 rounded-md cursor-pointer">
+    <div
+      className={cn(
+        "flex flex-row gap-2 items-center w-full hover:bg-gray-100/10 p-2 rounded-md cursor-pointer",
+        isSelected && "bg-gray-100/10",
+      )}
+      onClick={onClick}
+    >
       <Avatar>
         <AvatarImage src={avatar} alt={fullName} />
         <AvatarFallback>{initialAvatarText(fullName)}</AvatarFallback>
@@ -234,22 +368,48 @@ const BoardMemberItem = ({
 
             {/* Remove button */}
             {userRole === "ADMIN" && userId !== user?.id && (
-              <Button
-                variant="ghost"
-                className="w-full items-start justify-start pl-2 text-red-500"
-              >
-                Remove from board
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full items-start justify-start pl-2 text-red-500"
+                  >
+                    Remove from board
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <h1 className="text-base font-semibold">Remove From Board</h1>
+                  <p className="text-slate-400 text-sm">
+                    {fullName} will be removed from all cards on this board.
+                  </p>
+                  <Button variant={"destructive"} className="w-full mt-2 ">
+                    Remove
+                  </Button>
+                </PopoverContent>
+              </Popover>
             )}
 
             {/* Leave board button for self */}
             {userId === user?.id && (
-              <Button
-                variant="ghost"
-                className="w-full items-start justify-start pl-2 text-red-500"
-              >
-                Leave this board
-              </Button>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full items-start justify-start pl-2 text-red-500"
+                  >
+                    Leave this board
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <h1 className="text-base font-semibold">Leave this board</h1>
+                  <p className="text-slate-400 text-sm">
+                    This will remove you from all cards on this board.
+                  </p>
+                  <Button variant={"destructive"} className="w-full mt-2 ">
+                    Leave from this board
+                  </Button>
+                </PopoverContent>
+              </Popover>
             )}
           </SelectContent>
         </Select>

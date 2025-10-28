@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= appName || 'App' %> | Workspace Invite</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ------------------- */
+    /* --- CSS Reset --- */
+    /* ------------------- */
+    body { margin:0; padding:0; font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background:#f5f7fa; color:#1f2937; -webkit-text-size-adjust:100%; }
+    table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
+    img { display:block; max-width:100%; border:0; }
+    a { text-decoration:none; color:#3b82f6; }
+    
+    /* Global Styles */
+    .text-base { font-size:15px; line-height:1.6; color:#4b5563; }
+    .text-sm { font-size:13px; line-height:1.4; color:#6b7280; }
+    
+    /* Card & Container */
+    .container-wrapper { padding:32px 16px; }
+    .card { max-width:600px; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.05); }
+
+    /* Primary Button */
+    .btn { background:#3b82f6; color:#ffffff !important; font-weight:600; font-size:16px; padding:14px 28px; border-radius:10px; display:inline-block; border:1px solid #3b82f6; }
+    .btn:hover { background:#2563eb; border-color:#2563eb; }
+
+    /* Custom Message Blockquote */
+    .blockquote { background:#f1f5f9; border-left:4px solid #3b82f6; border-radius:8px; padding:14px 18px; color:#1f2937; }
+
+    /* Info Card */
+    .info-card { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:16px 20px; }
+
+    /* ----------------------- */
+    /* --- Responsive CSS --- */
+    /* ----------------------- */
+    @media screen and (max-width: 600px) {
+      .container-wrapper { padding:24px 16px !important; }
+      .card { width: 100% !important; border-radius:0 !important; }
+      .inner-padding { padding:24px !important; }
+      .btn { width: 100% !important; text-align: center !important; padding:12px 24px !important; }
+      .info-card-cell { display:block !important; width:100% !important; text-align:left !important; padding-right:0 !important; }
+      .info-card-cell + .info-card-cell { margin-top:16px; }
+      .info-card-cell[align="right"] { padding-left:0 !important; }
+    }
+
+    /* --------------------- */
+    /* --- Dark Mode CSS --- */
+    /* --------------------- */
+    @media (prefers-color-scheme: dark) {
+      body { background:#111827 !important; color:#e5e7eb !important; }
+      .card { background:#1f2937 !important; box-shadow:0 10px 15px -3px rgba(0,0,0,0.3), 0 4px 6px -4px rgba(0,0,0,0.1) !important; }
+      .main-heading { color:#f9fafb !important; }
+      .strong-text { color:#f9fafb !important; }
+      .text-base { color:#d1d5db !important; }
+      .text-sm { color:#9ca3af !important; }
+      .btn { background:#60a5fa !important; border-color:#60a5fa !important; color:#ffffff !important; }
+      .btn:hover { background:#3b82f6 !important; border-color:#3b82f6 !important; }
+      .blockquote { background:#374151 !important; border-left-color:#60a5fa !important; color:#e5e7eb !important; }
+      .info-card { background:#1f2937 !important; border-color:#374151 !important; }
+      .info-card-label { color:#9ca3af !important; }
+      .info-card-value { color:#f9fafb !important; }
+      .footer-divider { border-color:#374151 !important; }
+      a { color:#60a5fa !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+    <tr>
+      <td align="center" class="container-wrapper">
+        <table class="card" width="600" cellpadding="0" cellspacing="0" role="presentation">
+          
+          <tr>
+            <td align="center" style="padding:32px 28px 0;" class="inner-padding">
+              <table width="100%" role="presentation">
+                <tr>
+                  <td align="center">
+                    <% if (logoUrl) { %>
+                      <img src="<%= logoUrl %>" alt="<%= appName %> Logo" style="height:38px;object-fit:contain;margin-bottom:12px;">
+                    <% } else { %>
+                      <div class="main-heading" style="font-size:24px;font-weight:700;color:#111;margin-bottom:12px;"><%= appName || 'App' %></div>
+                    <% } %>
+                    
+                    <h1 class="main-heading" style="margin:0;color:#111;font-size:24px;font-weight:700;">
+                      You've been invited to a workspace!
+                    </h1>
+                    <p class="text-base" style="margin:8px 0 0 0;">
+                      **<%= inviterName %>** invited you to collaborate in **<%= workspaceName %>**.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <tr>
+            <td style="padding:28px 28px;" class="inner-padding">
+
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" class="info-card" style="margin-bottom:24px;">
+                <tr>
+                  <td width="50%" class="info-card-cell" style="padding-right:10px;">
+                    <div class="info-card-label" style="font-size:13px; color:#6b7280; margin-bottom:4px; font-weight:500;">Workspace</div>
+                    <div class="info-card-value" style="font-weight:600; font-size:18px; color:#172b4d;"><%= workspaceName %></div>
+                  </td>
+                  <td width="50%" align="right" class="info-card-cell" style="padding-left:10px;">
+                    <div class="info-card-label" style="font-size:13px; color:#6b7280; margin-bottom:4px; font-weight:500;">Your Role</div>
+                    <div class="info-card-value" style="font-weight:600; font-size:16px; color:#172b4d;"><%= role || 'Member' %></div>
+                  </td>
+                </tr>
+              </table>
+
+              <% if (typeof customMessage !== "undefined" && customMessage) { %>
+              <div class="blockquote" style="margin-bottom:24px;">
+                <p style="margin:0; font-size:15px; line-height:1.6;"><%= customMessage %></p>
+              </div>
+              <% } %>
+
+              <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin:28px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="<%= acceptLink %>" class="btn">Accept Invitation</a>
+                    </td>
+                </tr>
+              </table>
+
+              <p class="text-sm" align="center" style="margin:16px 0 0 0;">
+                If the button doesn't work, copy and paste this link:<br>
+                <a href="<%= acceptLink %>" style="word-break:break-all;"><%= acceptLink %></a>
+              </p>
+
+              <% if (typeof expirationDate !== "typeof" && expirationDate) { %>
+              <p class="text-sm" align="center" style="margin:16px 0 0 0; color:#9ca3af;">
+                This invitation expires on **<%= expirationDate %>**.
+              </p>
+              <% } %>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:20px 28px;" class="inner-padding">
+              <div style="border-top:1px solid #e5e7eb; margin-bottom:16px;" class="footer-divider"></div>
+              <table width="100%" role="presentation">
+                <tr>
+                  <td style="padding-right:10px;" class="text-sm">
+                    <span style="font-weight:600;"><%= appName || 'App' %></span> · <%= workspaceName %><br>
+                    Need help? <a href="mailto:<%= supportEmail %>">Contact support</a>
+                  </td>
+                  <td align="right" style="padding-left:10px; font-size:12px; color:#9ca3af;">
+                    <span style="display:block; margin-bottom:4px;">Sent to: <%= recipientEmail %></span>
+                    If you didn’t expect this, please ignore this email.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
