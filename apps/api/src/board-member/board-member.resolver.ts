@@ -35,6 +35,16 @@ export class BoardMemberResolver {
     return this.boardMemberService.findAll(boardId);
   }
 
+  @UseGuards(JWTAuthGuard)
+  @Query(() => BoardMember)
+  getCurrentBoardMember(
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.boardMemberService.getCurrentBoardMember(boardId, userId);
+  }
+
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
   @Mutation(() => BoardMember)
   @BoardRole('ADMIN', 'MEMBER')

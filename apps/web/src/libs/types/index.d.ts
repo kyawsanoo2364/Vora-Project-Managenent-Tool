@@ -23,6 +23,7 @@ export type Starred = {
 export type BoardMemberType = {
   id: string;
   role: string;
+  userId: string;
   user: UserType;
 };
 
@@ -38,4 +39,10 @@ export type WorkspaceMemberType = {
   role: string;
   userId: string;
   user: UserType;
+};
+
+export type ListType = {
+  id: string;
+  name: string;
+  orderIndex: number;
 };

@@ -19,6 +19,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UserPlus2 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import BoardInviteMemberDialog from "./board-invite-member-dialog";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { useBoardMember } from "@/libs/providers/board.member.provider";
 
 const BoardViewNavbar = ({
   boardId,
@@ -34,10 +37,16 @@ const BoardViewNavbar = ({
   const [cacheName, setCacheName] = useState("");
   const debounced_name = useDebounce(name, 500) as string;
   const titleRef = useRef(null);
+  const router = useRouter();
+  const { member } = useBoardMember();
 
   const updateBoardTitleMutation = useMutation({
     mutationFn: async ({ name }: { name: string }) =>
       await fetchWithAuth(UPDATE_BOARD, { id: boardId, name }),
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+      router.replace(`/home`);
+    },
   });
 
   useEffect(() => {
@@ -83,7 +92,7 @@ const BoardViewNavbar = ({
             <Skeleton width={"80px"} height={"20px"} />
           ) : (
             <div ref={titleRef}>
-              {isEditTitle ? (
+              {member?.role !== "VIEWER" && isEditTitle ? (
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -91,7 +100,11 @@ const BoardViewNavbar = ({
                 />
               ) : (
                 <h2
-                  className="text-lg font-semibold hover:bg-gray-200/20 px-4 cursor-pointer"
+                  className={cn(
+                    "text-lg font-semibold  px-4 ",
+                    member?.role !== "VIEWER" &&
+                      "hover:bg-gray-200/20 cursor-pointer",
+                  )}
                   onClick={() => setIsEditTitle(true)}
                 >
                   {debounced_name || cacheName}
@@ -137,7 +150,12 @@ const BoardViewNavbar = ({
               )}
             </div>
           )}
-          <BoardInviteMemberDialog members={board?.members} boardId={boardId} />
+          {member?.role !== "VIEWER" && (
+            <BoardInviteMemberDialog
+              members={board?.members}
+              boardId={boardId}
+            />
+          )}
         </div>
       </div>
     </div>

@@ -6,6 +6,6 @@ export class UpdateListInput extends PartialType(CreateListInput) {
   @Field()
   id: string;
 
-  @Field(() => Int, { nullable: true })
-  orderIndex?: number;
+  @Field(() => Int)
+  orderIndex: number;
 }

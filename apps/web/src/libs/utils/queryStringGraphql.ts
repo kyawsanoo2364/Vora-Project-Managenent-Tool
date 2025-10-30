@@ -164,6 +164,16 @@ export const TOGGLE_STARRED_BOARD = gql`
   }
 `;
 
+export const CREATE_LIST = gql`
+  mutation CreateList($name: String!, $boardId: String!) {
+    createList(createListInput: { name: $name, boardId: $boardId }) {
+      id
+      name
+      orderIndex
+    }
+  }
+`;
+
 export const GET_LISTS = gql`
   query Lists($boardId: String!) {
     list(boardId: $boardId) {
@@ -220,7 +230,7 @@ export const UPDATE_LIST = gql`
     $id: String!
     $name: String
     $boardId: String
-    $orderIndex: Int
+    $orderIndex: Int!
   ) {
     updateList(
       updateListInput: {
@@ -229,10 +239,7 @@ export const UPDATE_LIST = gql`
         boardId: $boardId
         orderIndex: $orderIndex
       }
-    ) {
-      name
-      orderIndex
-    }
+    )
   }
 `;
 
@@ -375,6 +382,22 @@ export const CREATE_BOARD_MEMBER = gql`
     ) {
       id
       role
+    }
+  }
+`;
+
+export const REMOVE_LEAVE_BOARD_MEMBER = gql`
+  mutation RemoveBoardMember($id: String!) {
+    removeBoardMember(id: $id)
+  }
+`;
+
+export const GET_CURRENT_BOARD_MEMBER = gql`
+  query GetCurrentBoardMember($boardId: String!) {
+    getCurrentBoardMember(boardId: $boardId) {
+      id
+      role
+      userId
     }
   }
 `;

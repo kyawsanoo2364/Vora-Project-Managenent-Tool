@@ -86,8 +86,18 @@ export class BoardMemberService {
     }));
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} boardMember`;
+  async getCurrentBoardMember(boardId: string, userId: string) {
+    const member = await this.prisma.boardMember.findFirst({
+      where: {
+        boardId,
+        userId,
+      },
+      include: {
+        user: true,
+      },
+    });
+    if (!member) throw new ForbiddenException('You are not this board member.');
+    return member;
   }
 
   async update(
@@ -150,13 +160,10 @@ export class BoardMemberService {
       );
 
     // get current logged in user board member.
-    const member = await this.prisma.boardMember.findFirst({
-      where: {
-        boardId: existingBoardMember.boardId,
-        userId,
-      },
-    });
-    if (!member) throw new ForbiddenException('You are not this board member.');
+    const member = await this.getCurrentBoardMember(
+      existingBoardMember.boardId,
+      userId,
+    );
     //if member role is admin, can delete all members.
     if (member.role === 'ADMIN') {
       await this.prisma.boardMember.delete({ where: { id } });

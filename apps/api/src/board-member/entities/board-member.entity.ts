@@ -10,5 +10,8 @@ export class BoardMember {
   user?: User;
 
   @Field()
+  userId: string;
+
+  @Field()
   role: string;
 }

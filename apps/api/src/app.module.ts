@@ -16,6 +16,7 @@ import { RedisModule } from './common/redis/redis.module';
 import { InviteLinkModule } from './invite-link/invite-link.module';
 import { WorkspaceMemberModule } from './workspace-member/workspace-member.module';
 import { EmailModule } from './email/email.module';
+import { CardModule } from './card/card.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { EmailModule } from './email/email.module';
     InviteLinkModule,
     WorkspaceMemberModule,
     EmailModule,
+    CardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

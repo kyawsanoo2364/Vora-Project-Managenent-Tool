@@ -34,7 +34,11 @@ export class BoardPermissionGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
-    const boardId = args.boardId;
+    const boardId =
+      args.boardId ||
+      args.updateBoardInput?.id ||
+      args.updateListInput?.boardId ||
+      args.createListInput?.boardId;
     if (!boardId) {
       throw new Error('boardId must be provided in arguments');
     }

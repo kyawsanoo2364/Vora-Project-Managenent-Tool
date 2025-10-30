@@ -11,6 +11,8 @@ import { PaginationArgs } from 'src/common/pagination/pagination.args';
 import { PaginatedBoard } from './types/paginated-board.type';
 import { timeStamp } from 'console';
 import { UpdateBoardInput } from './dto/update-board.input';
+import { BoardPermissionGuard } from 'src/common/board-permission/role.guard';
+import { BoardRole } from 'src/common/board-permission/board.role.decorator';
 
 @Resolver(() => Board)
 export class BoardResolver {
@@ -45,7 +47,8 @@ export class BoardResolver {
     );
   }
 
-  @UseGuards(JWTAuthGuard)
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
   @Query(() => Board, { name: 'getBoard' })
   findOne(@Args('boardId') boardId: string) {
     return this.boardService.findOne(boardId);
@@ -65,7 +68,8 @@ export class BoardResolver {
     );
   }
 
-  @UseGuards(JWTAuthGuard)
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
   @Mutation(() => Board)
   updateBoard(@Args('updateBoardInput') updateBoardInput: UpdateBoardInput) {
     return this.boardService.updateBoard(updateBoardInput.id, updateBoardInput);

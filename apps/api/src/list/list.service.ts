@@ -52,16 +52,30 @@ export class ListService {
   }
 
   async update(id: string, updateListInput: UpdateListInput) {
-    const updatedBoard = await this.prisma.list.update({
-      where: {
-        id,
-      },
-      data: {
-        ...updateListInput,
-      },
+    await this.prisma.$transaction(async (tx) => {
+      const lists = await tx.list.findMany({
+        where: { boardId: updateListInput.boardId },
+        orderBy: { orderIndex: 'asc' },
+      });
+
+      const movedItem = lists.find((l) => l.id === id);
+      if (!movedItem) throw new Error('List not found!');
+      const filteredLists = lists.filter((l) => l.id !== id);
+      filteredLists.splice(updateListInput.orderIndex, 0, movedItem);
+
+      await Promise.all(
+        filteredLists.map((list, i) => {
+          return tx.list.update({
+            where: { id: list.id },
+            data: { orderIndex: i },
+          });
+        }),
+      );
+
+      return filteredLists;
     });
 
-    return updatedBoard;
+    return 'Successfully updated list!';
   }
 
   remove(id: number) {

@@ -47,6 +47,7 @@ type StarredBoardEntity {
 type BoardMember {
   id: String!
   user: User
+  userId: String!
   role: String!
 }
 
@@ -91,6 +92,11 @@ type WorkspaceMember {
   createdAt: DateTime!
 }
 
+type Card {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 type Query {
   authWelcome: String!
   refreshToken(refreshToken: String!): Auth!
@@ -103,11 +109,13 @@ type Query {
   findStarredBoards(workspaceId: String!): [Board!]!
   list(boardId: String!): [List!]!
   boardMembers(boardId: String!): [BoardMember!]!
+  getCurrentBoardMember(boardId: String!): BoardMember!
   confirmLink(scopeId: String!, token: String!): ConfirmInvite!
   inviteLink: String!
   getInvite(scopeId: String!): FindInviteLink!
   getMember(workspaceId: String!): WorkspaceMember!
   getAllWorkspaceMember(workspaceId: String!): [WorkspaceMember!]!
+  card(id: Int!): Card!
 }
 
 type PaginatedType {
@@ -128,7 +136,7 @@ type Mutation {
   toggleStarredBoard(toggleStarredBoardInput: ToggleStarredBoardInput!): String!
   updateBoard(updateBoardInput: UpdateBoardInput!): Board!
   createList(createListInput: CreateListInput!): List!
-  updateList(updateListInput: UpdateListInput!): List!
+  updateList(updateListInput: UpdateListInput!): String!
   removeList(id: Int!): List!
   createBoardMember(createBoardMemberInput: CreateBoardMemberInput!, boardId: String!): BoardMember!
   updateBoardMember(updateBoardMemberInput: UpdateBoardMemberInput!, boardId: String!): BoardMember!
@@ -139,6 +147,9 @@ type Mutation {
   inviteLinkUsingMail(inviteToEmailInput: InviteToEmailInput!): String!
   updateWorkspaceMemberRole(id: String!, role: String!, workspaceId: String!): WorkspaceMember!
   removeWorkspaceMember(id: String!, workspaceId: String!): String!
+  createCard(createCardInput: CreateCardInput!, boardId: String!): Card!
+  updateCard(updateCardInput: UpdateCardInput!): Card!
+  removeCard(id: Int!): Card!
 }
 
 input SignInInput {
@@ -207,7 +218,7 @@ input UpdateListInput {
   name: String
   boardId: String
   id: String!
-  orderIndex: Int
+  orderIndex: Int!
 }
 
 input CreateBoardMemberInput {
@@ -240,4 +251,15 @@ input InviteToEmailInput {
   role: ROLE! = MEMBER
   maxUses: Int
   email: String!
+}
+
+input CreateCardInput {
+  title: String!
+  listId: String!
+}
+
+input UpdateCardInput {
+  title: String
+  listId: String
+  id: Int!
 }

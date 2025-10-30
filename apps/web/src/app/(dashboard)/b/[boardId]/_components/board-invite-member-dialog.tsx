@@ -30,6 +30,7 @@ import {
   CREATE_BOARD_MEMBER,
   GET_USERS_BY_NAME_OR_EMAIL,
   INVITE_LINK_USING_MAIL,
+  REMOVE_LEAVE_BOARD_MEMBER,
   UPDATE_BOARD_MEMBER,
 } from "@/libs/utils/queryStringGraphql";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -44,6 +45,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/modern-ui/popover";
+import { useBoardMember } from "@/libs/providers/board.member.provider";
 
 const BoardInviteMemberDialog = ({
   members,
@@ -57,9 +59,7 @@ const BoardInviteMemberDialog = ({
   const { user } = useAuth();
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedEmail, setSelectedEmail] = useState<string | null>(null);
-  const getUserRole = useCallback(() => {
-    return members.find((u) => u.user.id === user?.id)?.role;
-  }, [user, members]);
+  const member = useBoardMember().member;
   const [selectedRole, setSelectedRole] = useState("MEMBER");
 
   const queryClient = useQueryClient();
@@ -226,7 +226,7 @@ const BoardInviteMemberDialog = ({
                   boardId={boardId}
                   userId={m.user.id}
                   user={user}
-                  getUserRole={getUserRole}
+                  userRole={member?.role}
                 />
               ))}
             </ScrollArea>
@@ -279,7 +279,7 @@ const BoardMemberItem = ({
   boardId,
   userId,
   user,
-  getUserRole,
+  userRole,
 }: {
   fullName: string;
   avatar?: string;
@@ -289,11 +289,10 @@ const BoardMemberItem = ({
   boardId: string;
   userId: string;
   user: UserType | null;
-  getUserRole: () => string | undefined;
+  userRole: string | undefined;
 }) => {
   const queryClient = useQueryClient();
   const [roleValue, setRoleValue] = useState(role);
-  const userRole = getUserRole();
 
   const updateMemberMutation = useMutation({
     mutationFn: async ({ id, role }: { id: string; role: string }) =>
@@ -303,6 +302,18 @@ const BoardMemberItem = ({
     },
     onError: (error) => {
       toast.error(error.message || "Something went wrong!");
+    },
+  });
+
+  const removeLeaveMember = useMutation({
+    mutationFn: async ({ id }: { id: string }) =>
+      await fetchWithAuth(REMOVE_LEAVE_BOARD_MEMBER, { id }),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["board", boardId] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
     },
   });
 
@@ -382,8 +393,13 @@ const BoardMemberItem = ({
                   <p className="text-slate-400 text-sm">
                     {fullName} will be removed from all cards on this board.
                   </p>
-                  <Button variant={"destructive"} className="w-full mt-2 ">
-                    Remove
+                  <Button
+                    variant={"destructive"}
+                    className="w-full mt-2 "
+                    onClick={() => removeLeaveMember.mutate({ id })}
+                    disabled={removeLeaveMember.isPending}
+                  >
+                    {removeLeaveMember.isPending ? "Removing..." : "Remove"}
                   </Button>
                 </PopoverContent>
               </Popover>
@@ -405,8 +421,15 @@ const BoardMemberItem = ({
                   <p className="text-slate-400 text-sm">
                     This will remove you from all cards on this board.
                   </p>
-                  <Button variant={"destructive"} className="w-full mt-2 ">
-                    Leave from this board
+                  <Button
+                    variant={"destructive"}
+                    onClick={() => removeLeaveMember.mutate({ id })}
+                    className="w-full mt-2 "
+                    disabled={removeLeaveMember.isPending}
+                  >
+                    {removeLeaveMember.isPending
+                      ? "Leaving..."
+                      : "Leave from this board"}
                   </Button>
                 </PopoverContent>
               </Popover>

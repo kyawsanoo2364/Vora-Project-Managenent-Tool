@@ -3,7 +3,7 @@
 import { Button } from "@/components/modern-ui/button";
 import { ScrollArea } from "@radix-ui/themes";
 import { PlusIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { FormEvent, useEffect, useRef, useState } from "react";
 
 import ListCard from "./listCard";
 import {
@@ -14,7 +14,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import {
-  closestCenter,
   closestCorners,
   DndContext,
   DragEndEvent,
@@ -29,10 +28,21 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
 import {
-  GET_BOARD,
+  CREATE_LIST,
   GET_LISTS,
   UPDATE_LIST,
 } from "@/libs/utils/queryStringGraphql";
+import toast from "react-hot-toast";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/modern-ui/popover";
+import { Input } from "@/components/modern-ui/input";
+import { ListType } from "@/libs/types";
+import { useMount } from "@/hooks/use-mount";
+import { useBoardMember } from "@/libs/providers/board.member.provider";
 
 const BoardView = ({
   boardId,
@@ -45,6 +55,17 @@ const BoardView = ({
     queryKey: ["list", boardId],
     queryFn: async () => (await fetchWithAuth(GET_LISTS, { boardId }))?.list,
   });
+  const [createListName, setCreateListName] = useState<string>("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { member } = useBoardMember();
+  const createListMutation = useMutation({
+    mutationFn: async ({ name, boardId }: { name: string; boardId: string }) =>
+      (await fetchWithAuth(CREATE_LIST, { name, boardId }))
+        ?.createList as ListType,
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
+  });
 
   const updateListMutation = useMutation({
     mutationFn: async ({
@@ -53,10 +74,14 @@ const BoardView = ({
     }: {
       id: string;
       orderIndex: number;
-    }) => await fetchWithAuth(UPDATE_LIST, { id, orderIndex }),
+    }) => await fetchWithAuth(UPDATE_LIST, { id, orderIndex, boardId }),
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
   });
 
-  const [cards, setCards] = useState<any[]>([]);
+  const [cards, setCards] = useState<ListType[]>([]);
+  const [isCreateList, setIsCreateList] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 1024px)");
 
   useEffect(() => {
@@ -79,23 +104,40 @@ const BoardView = ({
     if (active.id === over?.id) {
       return;
     }
-    const originalPos = getTaskPos(active.id, cards);
-    const newPos = getTaskPos(over?.id, cards);
     setCards((tasks) => {
+      const originalPos = getTaskPos(active.id, tasks);
+      const newPos = getTaskPos(over?.id, tasks);
       return arrayMove(tasks, originalPos, newPos);
     });
 
     await updateListMutation.mutateAsync({
       id: active.id as string,
-      orderIndex: newPos,
+      orderIndex: getTaskPos(over?.id, cards),
     });
-    if (over) {
-      await updateListMutation.mutateAsync({
-        id: over.id as string,
-        orderIndex: originalPos,
+  };
+
+  const addList = async (e: FormEvent) => {
+    e.preventDefault();
+    if (createListName.trim().length === 0) return;
+    const newList = await createListMutation.mutateAsync({
+      name: createListName,
+      boardId,
+    });
+    setIsCreateList(true);
+    setCards([...cards, newList]);
+    setCreateListName("");
+  };
+
+  useEffect(() => {
+    if (isCreateList && scrollRef?.current) {
+      setIsCreateList(false);
+      const element = scrollRef.current;
+      element.scrollTo({
+        left: element.scrollWidth,
+        behavior: "smooth",
       });
     }
-  };
+  }, [isCreateList]);
 
   return (
     <DndContext
@@ -118,8 +160,10 @@ const BoardView = ({
           type="always"
           scrollbars={isDesktop ? "both" : "vertical"}
           size={"3"}
+          ref={scrollRef}
           style={{
             height: "82vh",
+            whiteSpace: "nowrap", // Key for horizontal list items
           }}
           className="p-4"
         >
@@ -131,17 +175,41 @@ const BoardView = ({
                     ? horizontalListSortingStrategy
                     : verticalListSortingStrategy
                 }
-                items={cards}
+                items={cards.map((list) => list.id)}
               >
                 {cards?.map((task, i) => (
-                  <ListCard key={i} id={task.id} title={task.name} />
+                  <ListCard key={task.id} id={task.id} title={task.name} />
                 ))}
               </SortableContext>
             )}
-            <Button size={"sm"} className="w-60 flex items-center gap-2">
-              <PlusIcon />
-              <span>Add List</span>
-            </Button>
+            {member?.role !== "VIEWER" && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size={"sm"} className="w-60 flex items-center gap-2">
+                    <PlusIcon />
+                    <span>Add List</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                  <h1 className="text-base font-medium">Create List</h1>
+                  <form onSubmit={addList}>
+                    <Input
+                      placeholder="New List name..."
+                      className="mt-4"
+                      value={createListName}
+                      onChange={(e) => setCreateListName(e.target.value)}
+                    />
+                    <Button
+                      className="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white hover:scale-102 transition duration-150 "
+                      type="submit"
+                      disabled={createListMutation.isPending}
+                    >
+                      {createListMutation.isPending ? "Adding..." : "Add List"}
+                    </Button>
+                  </form>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         </ScrollArea>
       </div>

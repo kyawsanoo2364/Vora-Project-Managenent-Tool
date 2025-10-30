@@ -100,12 +100,13 @@ model starredBoard {
 }
 
 model list {
-  id         String @id @default(uuid())
+  id         String     @id @default(uuid())
   name       String
   boardId    String
-  board      board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  orderIndex Int    @default(0)
+  board      board      @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  orderIndex Int        @default(0)
   cards      card[]
+  activities activity[]
 }
 
 model card {
@@ -164,8 +165,10 @@ model attachment {
 model activity {
   id        String   @id @default(uuid())
   action    String
-  cardId    String
-  card      card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId    String?
+  card      card?    @relation(fields: [cardId], references: [id])
+  listId    String?
+  list      list?    @relation(fields: [listId], references: [id])
   userId    String
   user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -187,20 +190,18 @@ enum InviteRole {
 }
 
 model inviteLink {
-  id          String     @id @default(uuid())
+  id          String    @id @default(uuid())
   tokenHash   String
   scope       String
   scopeId     String
   role        String
   createdById String
   maxUses     Int?
-  usedCount   Int        @default(0)
+  usedCount   Int       @default(0)
   expiresAt   DateTime?
-  revoked     Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  revoked     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   createdBy user @relation(fields: [createdById], references: [id])
-
-
 }

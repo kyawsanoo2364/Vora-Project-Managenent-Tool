@@ -135,7 +135,7 @@ export class BoardService {
         ...updateBoardInput,
       },
     });
-    return updateBoardInput;
+    return updatedBoard;
   }
 
   public async findStarredBoards(workspaceId: string, userId: string) {
