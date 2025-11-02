@@ -5,7 +5,7 @@ import { WorkspaceMemberType } from "../types";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWithAuth } from "../utils/fetchWithAuth";
 import { GET_WORKSPACE_MEMBER } from "../utils/queryStringGraphql";
-import ErrorComponent from "../components/error-component";
+import ErrorComponent from "../../components/error-component";
 
 type WorkspaceMemberContextType = {
   isLoading: boolean;

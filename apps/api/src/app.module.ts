@@ -17,6 +17,7 @@ import { InviteLinkModule } from './invite-link/invite-link.module';
 import { WorkspaceMemberModule } from './workspace-member/workspace-member.module';
 import { EmailModule } from './email/email.module';
 import { CardModule } from './card/card.module';
+import { ActivityModule } from './activity/activity.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { CardModule } from './card/card.module';
     WorkspaceMemberModule,
     EmailModule,
     CardModule,
+    ActivityModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -22,26 +22,12 @@ export class CardResolver {
     @Context() context: any,
   ) {
     const userId = context.req.user.id;
-    return this.cardService.create(createCardInput, userId);
+    return this.cardService.create(createCardInput, boardId, userId);
   }
 
-  @Query(() => [Card], { name: 'card' })
-  findAll() {
-    return this.cardService.findAll();
-  }
-
-  @Query(() => Card, { name: 'card' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.cardService.findOne(id);
-  }
-
-  @Mutation(() => Card)
-  updateCard(@Args('updateCardInput') updateCardInput: UpdateCardInput) {
-    return this.cardService.update(updateCardInput.id, updateCardInput);
-  }
-
-  @Mutation(() => Card)
-  removeCard(@Args('id', { type: () => Int }) id: number) {
-    return this.cardService.remove(id);
+  @UseGuards(JWTAuthGuard)
+  @Query(() => [Card])
+  getCardsByListId(@Args('listId') listId: string) {
+    return this.cardService.findByListId(listId);
   }
 }

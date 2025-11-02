@@ -1,6 +1,6 @@
 "use client";
 
-import InitialAvatar from "@/libs/components/initial-avatar";
+import InitialAvatar from "@/components/initial-avatar";
 import { useAuth } from "@/libs/providers/auth.provider";
 
 import Image from "next/image";

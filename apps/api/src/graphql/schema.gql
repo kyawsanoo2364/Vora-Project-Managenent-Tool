@@ -93,6 +93,12 @@ type WorkspaceMember {
 }
 
 type Card {
+  id: String!
+  title: String!
+  listId: String!
+}
+
+type Activity {
   """Example field (placeholder)"""
   exampleField: Int!
 }
@@ -115,7 +121,8 @@ type Query {
   getInvite(scopeId: String!): FindInviteLink!
   getMember(workspaceId: String!): WorkspaceMember!
   getAllWorkspaceMember(workspaceId: String!): [WorkspaceMember!]!
-  card(id: Int!): Card!
+  getCardsByListId(listId: String!): [Card!]!
+  activity(id: Int!): Activity!
 }
 
 type PaginatedType {
@@ -148,8 +155,9 @@ type Mutation {
   updateWorkspaceMemberRole(id: String!, role: String!, workspaceId: String!): WorkspaceMember!
   removeWorkspaceMember(id: String!, workspaceId: String!): String!
   createCard(createCardInput: CreateCardInput!, boardId: String!): Card!
-  updateCard(updateCardInput: UpdateCardInput!): Card!
-  removeCard(id: Int!): Card!
+  createActivity(createActivityInput: CreateActivityInput!): Activity!
+  updateActivity(updateActivityInput: UpdateActivityInput!): Activity!
+  removeActivity(id: Int!): Activity!
 }
 
 input SignInInput {
@@ -258,8 +266,15 @@ input CreateCardInput {
   listId: String!
 }
 
-input UpdateCardInput {
-  title: String
+input CreateActivityInput {
+  action: String!
+  cardId: String
+  listId: String
+}
+
+input UpdateActivityInput {
+  action: String
+  cardId: String
   listId: String
   id: Int!
 }

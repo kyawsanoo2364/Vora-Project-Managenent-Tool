@@ -20,7 +20,7 @@ import WorkspaceMemberItem, {
   WorkspaceMemberItemSkeleton,
 } from "./_components/workspace-member-item";
 import { WorkspaceMemberType } from "@/libs/types";
-import ErrorComponent from "@/libs/components/error-component";
+import ErrorComponent from "@/components/error-component";
 import { useWorkspaceMember } from "@/libs/providers/workspace.member.provider";
 
 const MembersPage = () => {

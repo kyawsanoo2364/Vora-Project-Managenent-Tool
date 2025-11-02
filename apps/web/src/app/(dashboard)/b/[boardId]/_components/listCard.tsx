@@ -5,7 +5,7 @@ import { cn } from "@/libs/utils/helpers";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { PlusIcon } from "lucide-react";
-import React, { FormEvent, useState } from "react";
+import React, { FormEvent, useLayoutEffect, useRef, useState } from "react";
 import ListCardEllipsis from "./listCardComponents/listCard-ellipsis";
 import CardItem from "./cards/card-item";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -15,6 +15,14 @@ import {
   PopoverTrigger,
 } from "@/components/modern-ui/popover";
 import { Input } from "@/components/modern-ui/input";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
+import {
+  CREATE_CARD,
+  GET_CARDS_BY_LIST_ID,
+} from "@/libs/utils/queryStringGraphql";
+import { useParams } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface Props {
   id: string;
@@ -23,6 +31,9 @@ interface Props {
 
 const ListCard = ({ id, title }: Props) => {
   const [newCardName, setNewCardName] = useState("");
+  const queryClient = useQueryClient();
+  const params = useParams();
+
   const {
     listeners,
     attributes,
@@ -37,26 +48,73 @@ const ListCard = ({ id, title }: Props) => {
       easing: "cubic-bezier(0.25, 1, 0.5, 1)",
     },
   });
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState<number | null>(null);
+
+  useLayoutEffect(() => {
+    if (cardRef.current && !isDragging) {
+      setHeight(cardRef.current.offsetHeight);
+    }
+  }, [isDragging]);
+
+  const cardsQuery = useQuery({
+    queryKey: ["cards", "list", id],
+    queryFn: async () =>
+      (await fetchWithAuth(GET_CARDS_BY_LIST_ID, { listId: id }))
+        ?.getCardsByListId,
+  });
+
+  const addCardMutation = useMutation({
+    mutationFn: async ({
+      title,
+      listId,
+      boardId,
+    }: {
+      title: string;
+      listId: string;
+      boardId: string;
+    }) => await fetchWithAuth(CREATE_CARD, { title, listId, boardId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["cards", "list", id] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
+  });
 
   const style = {
+    transform: CSS.Transform.toString(
+      transform ? { ...transform, scaleY: 1 } : null,
+    ),
     transition,
-    transform: CSS.Transform.toString(transform),
+    height: isDragging && height ? `${height}px` : undefined,
+    zIndex: isDragging ? 50 : "auto",
+    position: isDragging ? ("relative" as const) : undefined,
+    willChange: "transform",
   };
 
   const onAddCardSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (newCardName.trim().length === 0) return;
-    console.log(newCardName);
+
+    await addCardMutation.mutateAsync({
+      title: newCardName,
+      listId: id,
+      boardId: params.boardId as string,
+    });
     setNewCardName("");
   };
 
   return (
     <div
-      ref={setNodeRef}
-      style={{ ...style, touchAction: "none" }}
+      ref={(el) => {
+        cardRef.current = el;
+        setNodeRef(el);
+      }}
+      style={style}
       className={cn(
-        " flex flex-col gap-3 w-full md:w-72 bg-[#2C333A] rounded-md text-gray-100  cursor-grab pb-1",
-        isDragging && "cursor-grabbing",
+        " flex flex-col gap-3 w-full md:w-72 bg-[#2C333A]  rounded-md text-gray-100  cursor-grab pb-1",
+        isDragging && "cursor-grabbing opacity-50",
       )}
     >
       <div
@@ -71,7 +129,10 @@ const ListCard = ({ id, title }: Props) => {
       </div>
       <ScrollArea className=" w-full scroll-smooth">
         <div className="flex flex-col  gap-2 p-2 max-h-80">
-          {/* <CardItem /> */}
+          {!cardsQuery.isLoading &&
+            cardsQuery?.data?.map((item: any, i: number) => (
+              <CardItem key={item.id} title={item.title} id={item.id} />
+            ))}
         </div>
       </ScrollArea>
 
@@ -89,8 +150,13 @@ const ListCard = ({ id, title }: Props) => {
               value={newCardName}
               onChange={(e) => setNewCardName(e.target.value)}
             />
-            <Button className="mt-2 text-sm" size={"sm"} type="submit">
-              Add Card
+            <Button
+              className="mt-2 text-sm"
+              size={"sm"}
+              type="submit"
+              disabled={addCardMutation.isPending}
+            >
+              {addCardMutation.isPending ? "Adding..." : "Add Card"}
             </Button>
           </form>
         </PopoverContent>

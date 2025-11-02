@@ -401,3 +401,25 @@ export const GET_CURRENT_BOARD_MEMBER = gql`
     }
   }
 `;
+
+export const GET_CARDS_BY_LIST_ID = gql`
+  query GetCardsByListId($listId: String!) {
+    getCardsByListId(listId: $listId) {
+      id
+      title
+    }
+  }
+`;
+
+export const CREATE_CARD = gql`
+  mutation CreateCard($title: String!, $listId: String!, $boardId: String!) {
+    createCard(
+      createCardInput: { title: $title, listId: $listId }
+      boardId: $boardId
+    ) {
+      id
+      listId
+      title
+    }
+  }
+`;

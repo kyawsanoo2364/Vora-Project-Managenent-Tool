@@ -4,7 +4,7 @@ import React from "react";
 import { SidebarMenuItem, SidebarMenuRoot } from "./sidebar-menu";
 
 import { useParams, usePathname } from "next/navigation";
-import { MenuItems } from "../utils/constants";
+import { MenuItems } from "../libs/utils/constants";
 import { ScrollArea } from "@radix-ui/themes";
 
 const Sidebar = () => {

@@ -23,6 +23,7 @@ model user {
   workspaces       workspace[]
   starredBoards    starredBoard[]
   createdInvites   inviteLink[]
+  cards            card[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -64,13 +65,15 @@ model workspaceMember {
 }
 
 model boardMember {
-  id        String   @id @default(uuid())
-  userId    String
-  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  boardId   String
-  board     board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  role      Role     @default(MEMBER)
-  createdAt DateTime @default(now())
+  id                   String          @id @default(uuid())
+  userId               String
+  user                 user            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  boardId              String
+  board                board           @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  role                 Role            @default(MEMBER)
+  assignCards          card[]          @relation("cardsToBoardMembers")
+  assignChecklistItems checklistItem[] @relation("checklistItem_to_boardMembers")
+  createdAt            DateTime        @default(now())
 }
 
 model board {
@@ -110,23 +113,25 @@ model list {
 }
 
 model card {
-  id          String       @id @default(uuid())
-  title       String
-  description String?
-  priority    String?      @default("Medium")
-  startDate   DateTime?
-  dueDate     DateTime?
-  checklists  checklist[]
-  attachments attachment[]
-
-  listId      String
-  list        list       @relation(fields: [listId], references: [id], onDelete: Cascade)
-  comments    comment[]
-  orderIndex  Int
-  activities  activity[]
-  isCompleted Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id            String        @id @default(uuid())
+  title         String
+  description   String?
+  priority      String?       @default("Medium")
+  startDate     DateTime?
+  dueDate       DateTime?
+  checklists    checklist[]
+  attachments   attachment[]
+  assignMembers boardMember[] @relation("cardsToBoardMembers")
+  listId        String
+  list          list          @relation(fields: [listId], references: [id], onDelete: Cascade)
+  comments      comment[]
+  orderIndex    Int
+  activities    activity[]
+  userId        String
+  user          user          @relation(fields: [userId], references: [id])
+  isCompleted   Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model comment {
@@ -140,14 +145,27 @@ model comment {
   updatedAt DateTime @updatedAt
 }
 
+model checklistItem {
+  id            String        @id @default(uuid())
+  content       String
+  isCompleted   Boolean       @default(false)
+  checklistId   String
+  checklist     checklist     @relation(fields: [checklistId], references: [id])
+  assignMembers boardMember[] @relation("checklistItem_to_boardMembers")
+  startDate     DateTime
+  dueDate       DateTime?
+  orderIndex    Int           @default(0)
+  createdAt     DateTime      @default(now())
+}
+
 model checklist {
-  id          String   @id @default(uuid())
-  content     String
-  isCompleted Boolean  @default(false)
-  cardId      String
-  card        card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  orderIndex  Int      @default(0)
-  createdAt   DateTime @default(now())
+  id         String          @id @default(uuid())
+  title      String
+  items      checklistItem[]
+  cardId     String
+  card       card            @relation(fields: [cardId], references: [id])
+  orderIndex Int             @default(0)
+  createdAt  DateTime        @default(now())
 }
 
 model attachment {

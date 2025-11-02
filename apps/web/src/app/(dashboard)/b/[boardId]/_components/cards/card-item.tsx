@@ -7,29 +7,46 @@ import React, { useId, useState } from "react";
 import Item from "./item";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import EditCardPopover from "./editCardPopover";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
-const CardItem = () => {
+type CardItemProps = {
+  title: string;
+  id: string;
+};
+
+const CardItem = ({ title, id }: CardItemProps) => {
   const [isCompleted, setIsCompleted] = useState(false);
+  const params = useParams();
   const checkboxId = useId();
   return (
     <div className="w-full flex flex-col gap-2 bg-gray-600/20 p-2 rounded-sm hover:ring-2 hover:ring-gray-100 group  ">
       <div className="w-full flex flex-row justify-between items-center">
-        <label htmlFor={checkboxId} className="flex items-center gap-2">
+        <label htmlFor={checkboxId} className="flex items-center gap-2 w-full">
           <Checkbox
             id={checkboxId} // Add an ID for accessibility
             checked={isCompleted} // Controlled component: Read the state
             onCheckedChange={() => setIsCompleted(!isCompleted)} // Controlled
           />
-          <span className="text-gray-300 transition duration-300 truncate max-w-[150px] cursor-pointer">
-            Hello world
-          </span>
+          <Link
+            href={`/card/${id}`}
+            className="text-gray-300 transition w-full h-full duration-300 truncate max-w-[150px] cursor-pointer"
+          >
+            {title}
+          </Link>
         </label>
-
-        <Button variant={"ghost"} className="hover:bg-gray-400/20">
-          <EditIcon className="size-3" />
-        </Button>
+        <EditCardPopover
+          title={title}
+          id={id}
+          trigger={
+            <Button variant={"ghost"} className="hover:bg-gray-400/20">
+              <EditIcon className="size-3" />
+            </Button>
+          }
+        />
       </div>
-      <div className="flex flex-row flex-wrap gap-2 items-center  ">
+      {/* <div className="flex flex-row flex-wrap gap-2 items-center  ">
         {Array.from({ length: 3 }).map((_, i) => (
           <Item
             key={i}
@@ -38,7 +55,7 @@ const CardItem = () => {
             label="Comments"
           />
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -1,11 +1,53 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCardInput } from './dto/create-card.input';
 import { UpdateCardInput } from './dto/update-card.input';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { ActivityService } from 'src/activity/activity.service';
 
 @Injectable()
 export class CardService {
-  async create(createCardInput: CreateCardInput, userId: string) {
-    return 'This action adds a new card';
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly activityService: ActivityService,
+  ) {}
+
+  async create(
+    createCardInput: CreateCardInput,
+    boardId: string,
+    userId: string,
+  ) {
+    const list = await this.prisma.list.findFirst({
+      where: { id: createCardInput.listId, boardId },
+    });
+    if (!list) throw new BadRequestException('Invalid List ');
+    const lastCard = await this.prisma.card.findFirst({
+      where: {
+        listId: createCardInput.listId,
+      },
+      orderBy: {
+        orderIndex: 'desc',
+      },
+    });
+
+    const newCard = await this.prisma.card.create({
+      data: {
+        title: createCardInput.title,
+        listId: createCardInput.listId,
+        userId,
+        orderIndex: lastCard ? lastCard.orderIndex + 1 : 0,
+      },
+    });
+
+    await this.activityService.create(
+      {
+        listId: list.id,
+        cardId: newCard.id,
+        action: `created card "${newCard.title}" in list "${list.name}"`,
+      },
+      userId,
+    );
+
+    return newCard;
   }
 
   findAll() {
@@ -14,6 +56,17 @@ export class CardService {
 
   findOne(id: number) {
     return `This action returns a #${id} card`;
+  }
+
+  async findByListId(listId: string) {
+    return await this.prisma.card.findMany({
+      where: {
+        listId,
+      },
+      orderBy: {
+        orderIndex: 'asc',
+      },
+    });
   }
 
   update(id: number, updateCardInput: UpdateCardInput) {
