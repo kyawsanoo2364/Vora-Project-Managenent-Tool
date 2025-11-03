@@ -46,3 +46,8 @@ export type ListType = {
   name: string;
   orderIndex: number;
 };
+
+type Priority = {
+  label: "Low" | "Medium" | "High" | "Urgent";
+  color: string; // hex, rgb, or tailwind class
+};
