@@ -16,7 +16,7 @@ import ChecklistItem from "./checklist-item";
 
 const CheckList = () => {
   const [isEditTitle, setIsEditTitle] = useState(false);
-  const [isOpenCreate, setIsOpenCreate] = useState(true); //for add an item ui
+  const [isOpenCreate, setIsOpenCreate] = useState(false); //for add an item ui
   const titleRef = useRef(null);
 
   useClickAway(titleRef, () => {

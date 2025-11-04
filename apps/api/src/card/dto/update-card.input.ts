@@ -3,6 +3,21 @@ import { InputType, Field, Int, PartialType } from '@nestjs/graphql';
 
 @InputType()
 export class UpdateCardInput extends PartialType(CreateCardInput) {
-  @Field(() => Int)
-  id: number;
+  @Field()
+  id: string;
+
+  @Field({ nullable: true })
+  description?: string;
+
+  @Field({ nullable: true })
+  priority?: string;
+
+  @Field({ nullable: true })
+  startDate?: Date;
+
+  @Field({ nullable: true })
+  dueDate?: Date;
+
+  @Field(() => Boolean, { nullable: true })
+  isCompleted?: boolean;
 }

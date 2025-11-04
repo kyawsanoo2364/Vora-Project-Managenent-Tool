@@ -423,3 +423,31 @@ export const CREATE_CARD = gql`
     }
   }
 `;
+
+export const UPDATE_CARD = gql`
+  mutation UpdateCard(
+    $boardId: String!
+    $id: String!
+    $title: String
+    $description: String
+    $priority: String
+    $startDate: Date
+    $dueDate: Date
+    $isCompleted: Boolean
+  ) {
+    updateCard(
+      boardId: $boardId
+      updateCardInput: {
+        id: $id
+        title: $title
+        description: $description
+        priority: $priority
+        startDate: $startDate
+        dueDate: $dueDate
+        isCompleted: $isCompleted
+      }
+    ) {
+      id
+    }
+  }
+`;

@@ -30,4 +30,20 @@ export class CardResolver {
   getCardsByListId(@Args('listId') listId: string) {
     return this.cardService.findByListId(listId);
   }
+
+  @UseGuards(JWTAuthGuard)
+  @Query()
+  getCardsById(@Args('id') id: string) {
+    return this.cardService.findById(id);
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => Card)
+  updateCard(
+    @Args('boardId') boardId: string,
+    @Args('updateCardInput') updateCardInput: UpdateCardInput,
+  ) {
+    return this.cardService.update(updateCardInput.id, updateCardInput);
+  }
 }

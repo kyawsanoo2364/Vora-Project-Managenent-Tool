@@ -69,8 +69,50 @@ export class CardService {
     });
   }
 
-  update(id: number, updateCardInput: UpdateCardInput) {
-    return `This action updates a #${id} card`;
+  async findById(id: string) {
+    return await this.prisma.card.findUnique({
+      where: { id },
+      include: {
+        checklists: {
+          include: {
+            items: true,
+          },
+        },
+        activities: {
+          include: {
+            user: true,
+          },
+        },
+        assignMembers: {
+          include: {
+            user: true,
+          },
+        },
+        attachments: {
+          include: {
+            media: true,
+          },
+        },
+        comments: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+  }
+
+  async update(id: string, updateCardInput: UpdateCardInput) {
+    const updatedCard = await this.prisma.card.update({
+      where: {
+        id,
+      },
+      data: {
+        ...updateCardInput,
+      },
+    });
+
+    return updatedCard;
   }
 
   remove(id: number) {

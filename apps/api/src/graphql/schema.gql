@@ -155,6 +155,7 @@ type Mutation {
   updateWorkspaceMemberRole(id: String!, role: String!, workspaceId: String!): WorkspaceMember!
   removeWorkspaceMember(id: String!, workspaceId: String!): String!
   createCard(createCardInput: CreateCardInput!, boardId: String!): Card!
+  updateCard(boardId: String!, updateCardInput: UpdateCardInput!): Card!
   createActivity(createActivityInput: CreateActivityInput!): Activity!
   updateActivity(updateActivityInput: UpdateActivityInput!): Activity!
   removeActivity(id: Int!): Activity!
@@ -264,6 +265,17 @@ input InviteToEmailInput {
 input CreateCardInput {
   title: String!
   listId: String!
+}
+
+input UpdateCardInput {
+  title: String
+  listId: String
+  id: String!
+  description: String
+  priority: String
+  startDate: DateTime
+  dueDate: DateTime
+  isCompleted: Boolean
 }
 
 input CreateActivityInput {

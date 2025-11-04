@@ -8,11 +8,12 @@ import {
   LinkIcon,
   ListCheckIcon,
   LogsIcon,
+  MessageSquareIcon,
   PlusIcon,
   UserPlusIcon,
 } from "lucide-react";
 import { Button } from "../modern-ui/button";
-import { ScrollArea, ScrollBar } from "../ui/scroll-area";
+import { ScrollArea } from "../ui/scroll-area";
 
 import RichTextEditor from "../rich-text-editor";
 import { Popover, PopoverContent, PopoverTrigger } from "../modern-ui/popover";
@@ -32,7 +33,11 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Priority } from "@/libs/types";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../modern-ui/tooltip";
+
+import Attachment from "../editCardComponents/attachment";
+import CommentInput from "../editCardComponents/commentInput";
+
+import CommentsActivitiesSection from "../editCardComponents/comments_activities-section";
 
 export const PRIORITIES: Priority[] = [
   { label: "Low", color: "#22c55e" }, // green
@@ -175,13 +180,26 @@ const EditCardView = () => {
               </>
             )}
           </div>
+          {/** Attachment */}
+          <div className="flex flex-col gap-4 mt-2">
+            <Attachment />
+          </div>
           {/** Checklist */}
           <div className="flex flex-col gap-4 mt-2">
             <CheckList />
           </div>
         </div>
       </ScrollArea>
-      <div className="w-full"></div>
+      <ScrollArea className="h-[90vh] w-full p-4">
+        <div className="w-full flex flex-col gap-4">
+          <div className="flex flex-row items-center gap-2">
+            <MessageSquareIcon className="size-5" />
+            <h3 className="text-lg font-semibold">Comments and Activities</h3>
+          </div>
+          <CommentInput />
+          <CommentsActivitiesSection />
+        </div>
+      </ScrollArea>
     </div>
   );
 };
