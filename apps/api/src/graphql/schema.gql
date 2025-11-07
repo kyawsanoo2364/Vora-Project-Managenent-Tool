@@ -10,7 +10,9 @@ type Auth {
 type User {
   id: String!
   username: String!
-  fullName: String!
+  firstName: String!
+  lastName: String!
+  fullName: String
   email: String!
   avatar: String
   createdAt: DateTime!
@@ -92,15 +94,55 @@ type WorkspaceMember {
   createdAt: DateTime!
 }
 
+type ChecklistItem {
+  id: String!
+  content: String!
+  isCompleted: Boolean!
+  startDate: DateTime
+  dueDate: DateTime
+  assignMembers: [BoardMember!]!
+  orderIndex: Int!
+  createdAt: DateTime!
+}
+
+type Checklist {
+  id: String!
+  title: String!
+  cardId: String!
+  items: [ChecklistItem!]!
+  orderIndex: String!
+  createdAt: DateTime!
+}
+
 type Card {
   id: String!
   title: String!
   listId: String!
+  priority: String!
+  startDate: DateTime
+  dueDate: DateTime
+  description: String
+  checklists: [Checklist!]!
+  assignMembers: [BoardMember!]!
+  orderIndex: Int!
+  isCompleted: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type Activity {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  id: String!
+  action: String!
+  user: User!
+  createdAt: DateTime!
+}
+
+type Comment {
+  id: String!
+  content: String!
+  user: User!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
 
 type Query {
@@ -122,7 +164,12 @@ type Query {
   getMember(workspaceId: String!): WorkspaceMember!
   getAllWorkspaceMember(workspaceId: String!): [WorkspaceMember!]!
   getCardsByListId(listId: String!): [Card!]!
-  activity(id: Int!): Activity!
+  getCardById(id: String!): Card!
+  getBoardIdFromCard(cardId: String!): String!
+  getAllActivitiesByCardId(cardId: String!, boardId: String!): [Activity!]!
+  checklists(cardId: String!): [Checklist!]!
+  comment(id: Int!): Comment!
+  checklistItems(checklistId: String!, boardId: String!): [ChecklistItem!]!
 }
 
 type PaginatedType {
@@ -159,6 +206,15 @@ type Mutation {
   createActivity(createActivityInput: CreateActivityInput!): Activity!
   updateActivity(updateActivityInput: UpdateActivityInput!): Activity!
   removeActivity(id: Int!): Activity!
+  createChecklist(createChecklistInput: CreateChecklistInput!, boardId: String!): Checklist!
+  updateChecklist(updateChecklistInput: UpdateChecklistInput!, boardId: String!): Checklist!
+  removeChecklist(id: String!, boardId: String!): String!
+  createComment(createCommentInput: CreateCommentInput!): Comment!
+  updateComment(updateCommentInput: UpdateCommentInput!): Comment!
+  removeComment(id: Int!): Comment!
+  createChecklistItem(createChecklistItemInput: CreateChecklistItemInput!, boardId: String!): ChecklistItem!
+  updateChecklistItem(updateChecklistItemInput: UpdateChecklistItemInput!, boardId: String!): ChecklistItem!
+  removeChecklistItem(id: String!, boardId: String!): String!
 }
 
 input SignInInput {
@@ -289,4 +345,42 @@ input UpdateActivityInput {
   cardId: String
   listId: String
   id: Int!
+}
+
+input CreateChecklistInput {
+  title: String!
+  cardId: String!
+}
+
+input UpdateChecklistInput {
+  title: String
+  cardId: String
+  id: String!
+}
+
+input CreateCommentInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateCommentInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
+
+input CreateChecklistItemInput {
+  content: String!
+  checklistId: String!
+  startDate: DateTime
+  dueDate: DateTime
+}
+
+input UpdateChecklistItemInput {
+  content: String
+  checklistId: String
+  startDate: DateTime
+  dueDate: DateTime
+  id: String!
+  isCompleted: Boolean
 }

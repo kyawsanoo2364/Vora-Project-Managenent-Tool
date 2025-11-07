@@ -5,6 +5,8 @@ import { CreateActivityInput } from './dto/create-activity.input';
 import { UpdateActivityInput } from './dto/update-activity.input';
 import { UseGuards } from '@nestjs/common';
 import { JWTAuthGuard } from 'src/auth/guard/guard.guard';
+import { BoardPermissionGuard } from 'src/common/board-permission/role.guard';
+import { BoardRole } from 'src/common/board-permission/board.role.decorator';
 
 @Resolver(() => Activity)
 export class ActivityResolver {
@@ -20,14 +22,14 @@ export class ActivityResolver {
     return this.activityService.create(createActivityInput, userId);
   }
 
-  @Query(() => [Activity], { name: 'activity' })
-  findAll() {
-    return this.activityService.findAll();
-  }
-
-  @Query(() => Activity, { name: 'activity' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.activityService.findOne(id);
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
+  @Query(() => [Activity])
+  getAllActivitiesByCardId(
+    @Args('cardId') cardId: string,
+    @Args('boardId') boardId: string,
+  ) {
+    return this.activityService.findAllByCardId(cardId, boardId);
   }
 
   @Mutation(() => Activity)

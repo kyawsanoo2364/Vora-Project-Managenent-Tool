@@ -411,6 +411,12 @@ export const GET_CARDS_BY_LIST_ID = gql`
   }
 `;
 
+export const GET_BOARD_ID_FROM_CARD = gql`
+  query getBoardIdFromCard($cardId: String!) {
+    getBoardIdFromCard(cardId: $cardId)
+  }
+`;
+
 export const CREATE_CARD = gql`
   mutation CreateCard($title: String!, $listId: String!, $boardId: String!) {
     createCard(
@@ -431,8 +437,8 @@ export const UPDATE_CARD = gql`
     $title: String
     $description: String
     $priority: String
-    $startDate: Date
-    $dueDate: Date
+    $startDate: DateTime
+    $dueDate: DateTime
     $isCompleted: Boolean
   ) {
     updateCard(
@@ -448,6 +454,56 @@ export const UPDATE_CARD = gql`
       }
     ) {
       id
+    }
+  }
+`;
+
+export const GET_CARD_BY_ID = gql`
+  query GetCardById($id: String!) {
+    getCardById(id: $id) {
+      id
+      title
+      priority
+      startDate
+      dueDate
+      description
+      checklists {
+        id
+        title
+        items {
+          id
+          content
+          isCompleted
+          startDate
+          dueDate
+          assignMembers {
+            id
+            user {
+              username
+              firstName
+              email
+              avatar
+            }
+          }
+          orderIndex
+          createdAt
+        }
+
+        orderIndex
+
+        createdAt
+      }
+      assignMembers {
+        id
+        user {
+          username
+          firstName
+          email
+          avatar
+        }
+      }
+      isCompleted
+      createdAt
     }
   }
 `;

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateActivityInput } from './dto/create-activity.input';
 import { UpdateActivityInput } from './dto/update-activity.input';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -15,8 +15,29 @@ export class ActivityService {
     return newActivity;
   }
 
-  findAll() {
-    return `This action returns all activity`;
+  async findAllByCardId(cardId: string, boardId: string) {
+    const existingCard = await this.prisma.card.findUnique({
+      where: { id: cardId },
+      include: {
+        list: {
+          select: {
+            boardId: true,
+          },
+        },
+      },
+    });
+    if (!existingCard) throw new BadRequestException('Invalid card or cardId');
+    if (existingCard.list.boardId !== boardId)
+      throw new BadRequestException('Invalid card or board');
+    return await this.prisma.activity.findMany({
+      where: {
+        cardId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 20,
+    });
   }
 
   findOne(id: number) {

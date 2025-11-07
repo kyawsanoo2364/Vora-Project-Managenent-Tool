@@ -32,9 +32,15 @@ export class CardResolver {
   }
 
   @UseGuards(JWTAuthGuard)
-  @Query()
-  getCardsById(@Args('id') id: string) {
+  @Query(() => Card)
+  getCardById(@Args('id') id: string) {
     return this.cardService.findById(id);
+  }
+
+  @UseGuards(JWTAuthGuard)
+  @Query(() => String)
+  getBoardIdFromCard(@Args('cardId') cardId: string) {
+    return this.cardService.getBoardIdFromCard(cardId);
   }
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
@@ -43,7 +49,12 @@ export class CardResolver {
   updateCard(
     @Args('boardId') boardId: string,
     @Args('updateCardInput') updateCardInput: UpdateCardInput,
+    @Context() context: any,
   ) {
-    return this.cardService.update(updateCardInput.id, updateCardInput);
+    return this.cardService.update(
+      updateCardInput.id,
+      updateCardInput,
+      context.req.user.id,
+    );
   }
 }

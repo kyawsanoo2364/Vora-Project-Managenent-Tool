@@ -2,16 +2,19 @@ import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { User } from 'src/user/entities/user.entity';
 
 @ObjectType()
-export class Activity {
+export class Comment {
   @Field()
   id: string;
 
   @Field()
-  action: string;
+  content: string;
 
   @Field(() => User)
   user: User;
 
   @Field()
   createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
 }

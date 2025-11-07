@@ -1,5 +1,11 @@
 import { CreateCardInput } from './create-card.input';
-import { InputType, Field, Int, PartialType } from '@nestjs/graphql';
+import {
+  InputType,
+  Field,
+  Int,
+  PartialType,
+  GraphQLISODateTime,
+} from '@nestjs/graphql';
 
 @InputType()
 export class UpdateCardInput extends PartialType(CreateCardInput) {
@@ -12,10 +18,10 @@ export class UpdateCardInput extends PartialType(CreateCardInput) {
   @Field({ nullable: true })
   priority?: string;
 
-  @Field({ nullable: true })
+  @Field(() => GraphQLISODateTime, { nullable: true })
   startDate?: Date;
 
-  @Field({ nullable: true })
+  @Field(() => GraphQLISODateTime, { nullable: true })
   dueDate?: Date;
 
   @Field(() => Boolean, { nullable: true })

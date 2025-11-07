@@ -1,0 +1,286 @@
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
+import { Checkbox } from "../ui/checkbox";
+import { useClickAway } from "@/hooks/use-click-away";
+import {
+  ClockIcon,
+  EditIcon,
+  LinkIcon,
+  ListCheckIcon,
+  LogsIcon,
+  PlusIcon,
+  UserPlusIcon,
+} from "lucide-react";
+import ChecklistContent from "./checklist-content";
+import AttachmentContent from "./attachment-content";
+import MemberContent from "./member-content";
+import DateContent from "./date-content";
+import { Input } from "../ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "../modern-ui/popover";
+import { Button } from "../ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { PRIORITIES } from "../views/editCardView";
+import RichTextEditor from "../rich-text-editor";
+import CheckList from "./checklist";
+import { Card } from "@/libs/types";
+import { ScrollArea } from "../ui/scroll-area";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
+import { UPDATE_CARD } from "@/libs/utils/queryStringGraphql";
+import toast from "react-hot-toast";
+import { useDebounce } from "@/libs/hooks/useDebounce";
+
+type UpdateCardArgsType = {
+  id: string;
+
+  title?: string;
+  description?: string;
+  priority?: string;
+  startDate?: string | Date;
+  dueDate?: string | Date;
+  isCompleted?: boolean;
+};
+
+const featureItems = [
+  {
+    label: "CheckList",
+    Icon: <ListCheckIcon className="size-4" />,
+    content: <ChecklistContent />,
+  },
+  {
+    label: "Attachment",
+    Icon: <LinkIcon className="size-4" />,
+    content: <AttachmentContent />,
+  },
+  {
+    label: "Member",
+    Icon: <UserPlusIcon className="size-4" />,
+    content: <MemberContent />,
+  },
+  {
+    label: "Dates",
+    Icon: <ClockIcon className="size-4" />,
+    content: <DateContent />,
+  },
+];
+
+const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
+  const queryClient = useQueryClient();
+  const [isCompleted, setIsCompleted] = useState(data.isCompleted);
+  const [title, setTitle] = useState(data.title);
+  const titleDebounced = useDebounce(title, 300);
+  const [isOpenTitleInput, setIsOpenTitleInput] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
+  const [priority, setPriority] = useState(data.priority);
+  const titleRef = useRef(null);
+  const [description, setDescription] = useState(data.description || "");
+  const [descriptionText, setDescriptionText] = useState(data.description);
+  useClickAway(titleRef, () => {
+    if (isOpenTitleInput) setIsOpenTitleInput(false);
+  });
+
+  const updateCardMutation = useMutation({
+    mutationFn: async ({
+      id,
+
+      description,
+      dueDate,
+      isCompleted,
+      priority,
+      startDate,
+      title,
+    }: UpdateCardArgsType) =>
+      await fetchWithAuth(UPDATE_CARD, {
+        id,
+        boardId,
+        description,
+        dueDate,
+        isCompleted,
+        priority,
+        startDate,
+        title,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["card", data.id] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
+  });
+
+  const onChangeCheckbox = async (value: boolean) => {
+    await updateCardMutation.mutateAsync({ id: data.id, isCompleted: value });
+    setIsCompleted(value);
+  };
+
+  useEffect(() => {
+    if (
+      titleDebounced !== data.title &&
+      titleDebounced &&
+      titleDebounced.length > 0
+    ) {
+      updateCardMutation.mutate({ id: data.id, title: titleDebounced });
+    }
+  }, [titleDebounced]);
+
+  const updateDescription = async () => {
+    if (descriptionText.length > 0) {
+      await updateCardMutation.mutateAsync({ id: data.id, description });
+    } else {
+      await updateCardMutation.mutateAsync({
+        id: data.id,
+        description: descriptionText,
+      });
+    }
+    setShowEditor(false);
+  };
+
+  const onChangePriority = (value: string) => {
+    setPriority(value);
+    updateCardMutation.mutate({ id: data.id, priority: value });
+  };
+
+  return (
+    <div className="w-full flex flex-col gap-2 mt-4">
+      <div className="flex w-full items-center justify-between">
+        <div className="flex flex-row items-center gap-4" ref={titleRef}>
+          <Checkbox
+            className="cursor-pointer"
+            checked={isCompleted}
+            onCheckedChange={() => onChangeCheckbox(!isCompleted)}
+          />
+          {isOpenTitleInput ? (
+            <Input
+              placeholder="Enter title..."
+              className="max-w-sm"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          ) : (
+            <h1
+              onClick={() => setIsOpenTitleInput(true)}
+              className="text-xl font-medium"
+            >
+              {data.title}
+            </h1>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-row items-center flex-wrap gap-1">
+        {featureItems.map((item, i) => (
+          <Popover key={i}>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                key={i}
+                className="bg-gray-500/10 hover:bg-gray-500/20"
+              >
+                {item.Icon}
+                <span>{item.label}</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>{item.content}</PopoverContent>
+          </Popover>
+        ))}
+
+        <Select value={priority} onValueChange={onChangePriority}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Priority</SelectLabel>
+              {PRIORITIES.map((p, i) => (
+                <SelectItem key={i} value={p.label}>
+                  <span style={{ color: p.color }}>{p.label}</span>
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+      {/**Description */}
+      <div className="flex flex-col gap-2 mt-2">
+        <div className="flex flex-row items-center justify-between">
+          <div className="flex flex-row items-center gap-2">
+            <LogsIcon className="text-slate-600 size-5" />
+
+            <h3 className="font-medium text-xl text-slate-300">Description</h3>
+          </div>
+          {!showEditor && data.description && data.description.length > 0 && (
+            <Button
+              variant={"ghost"}
+              className="hover:bg-gray-200/10"
+              onClick={() => setShowEditor(true)}
+            >
+              <EditIcon />
+            </Button>
+          )}
+          {!showEditor &&
+            !data.description &&
+            data.description.length === 0 && (
+              <Button onClick={() => setShowEditor(true)}>
+                <PlusIcon />
+                <span>Add Description</span>
+              </Button>
+            )}
+        </div>
+        {!showEditor && data.description && data.description.length > 0 && (
+          <ScrollArea className="border border-gray-600 rounded-sm p-4 max-h-[200px]">
+            <div dangerouslySetInnerHTML={{ __html: data.description }} />
+          </ScrollArea>
+        )}
+        {showEditor && (
+          <>
+            <RichTextEditor
+              value={description}
+              onValueChange={setDescription}
+              onTextChange={setDescriptionText}
+            />
+            <div className="flex flex-row items-center gap-2 mt-1">
+              <Button
+                onClick={updateDescription}
+                disabled={updateCardMutation.isPending}
+              >
+                {updateCardMutation.isPending ? "Saving..." : "Save"}{" "}
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={() => setShowEditor(false)}
+                className="bg-gray-500/20 hover:bg-gray-500/30"
+              >
+                Cancel
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+      {/** Attachment */}
+      {/* <div className="flex flex-col gap-4 mt-2">
+    <Attachment />
+    </div> */}
+      {/** Checklist */}
+      <div className="flex flex-col gap-4 mt-2">
+        {data.checklists?.map((checklist, i) => (
+          <CheckList
+            title={checklist.title}
+            id={checklist.id}
+            key={checklist.id}
+            items={checklist.items}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default CardDetails;

@@ -18,6 +18,9 @@ import { WorkspaceMemberModule } from './workspace-member/workspace-member.modul
 import { EmailModule } from './email/email.module';
 import { CardModule } from './card/card.module';
 import { ActivityModule } from './activity/activity.module';
+import { ChecklistModule } from './checklist/checklist.module';
+import { CommentModule } from './comment/comment.module';
+import { ChecklistItemModule } from './checklist-item/checklist-item.module';
 
 @Module({
   imports: [
@@ -42,6 +45,9 @@ import { ActivityModule } from './activity/activity.module';
     EmailModule,
     CardModule,
     ActivityModule,
+    ChecklistModule,
+    CommentModule,
+    ChecklistItemModule,
   ],
   controllers: [AppController],
   providers: [AppService],

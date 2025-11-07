@@ -51,3 +51,47 @@ type Priority = {
   label: "Low" | "Medium" | "High" | "Urgent";
   color: string; // hex, rgb, or tailwind class
 };
+
+export interface Card {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+  startDate: string | null;
+  dueDate: string | null;
+  isCompleted: boolean;
+  createdAt: string;
+  assignMembers: AssignMember[];
+  checklists: Checklist[];
+}
+
+export interface AssignMember {
+  id: string;
+  // adjust user type if needed
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    avatar?: string;
+  };
+}
+
+export interface Checklist {
+  id: string;
+  title: string;
+  orderIndex: string; // or number if parsed
+  createdAt: string;
+  items: ChecklistItem[];
+}
+
+export interface ChecklistItem {
+  id: string;
+  content: string;
+  isCompleted: boolean;
+  startDate: string | null;
+  dueDate: string | null;
+  // optional fields
+  orderIndex?: string | number;
+  createdAt?: string;
+}

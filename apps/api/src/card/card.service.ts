@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCardInput } from './dto/create-card.input';
 import { UpdateCardInput } from './dto/update-card.input';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -10,6 +14,17 @@ export class CardService {
     private readonly prisma: PrismaService,
     private readonly activityService: ActivityService,
   ) {}
+
+  private async logActivity(
+    condition: boolean,
+    action: string,
+    cardId: string,
+    userId: string,
+  ) {
+    if (condition) {
+      await this.activityService.create({ action, cardId }, userId);
+    }
+  }
 
   async create(
     createCardInput: CreateCardInput,
@@ -54,8 +69,19 @@ export class CardService {
     return `This action returns all card`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} card`;
+  async getBoardIdFromCard(cardId: string) {
+    const card = await this.prisma.card.findUnique({
+      where: { id: cardId },
+      include: {
+        list: {
+          select: {
+            boardId: true,
+          },
+        },
+      },
+    });
+    if (!card) throw new BadRequestException('Invalid card id');
+    return card.list.boardId;
   }
 
   async findByListId(listId: string) {
@@ -70,19 +96,19 @@ export class CardService {
   }
 
   async findById(id: string) {
-    return await this.prisma.card.findUnique({
+    const card = await this.prisma.card.findUnique({
       where: { id },
       include: {
         checklists: {
           include: {
-            items: true,
+            items: {
+              include: {
+                assignMembers: true,
+              },
+            },
           },
         },
-        activities: {
-          include: {
-            user: true,
-          },
-        },
+
         assignMembers: {
           include: {
             user: true,
@@ -93,16 +119,16 @@ export class CardService {
             media: true,
           },
         },
-        comments: {
-          include: {
-            user: true,
-          },
-        },
       },
     });
+    if (!card) throw new NotFoundException('No Card found!');
+
+    return card;
   }
 
-  async update(id: string, updateCardInput: UpdateCardInput) {
+  async update(id: string, updateCardInput: UpdateCardInput, userId: string) {
+    const oldCard = await this.prisma.card.findUnique({ where: { id } });
+    if (!oldCard) throw new BadRequestException('No card found.');
     const updatedCard = await this.prisma.card.update({
       where: {
         id,
@@ -111,6 +137,53 @@ export class CardService {
         ...updateCardInput,
       },
     });
+
+    await this.logActivity(
+      updateCardInput.isCompleted !== null &&
+        typeof updateCardInput.isCompleted !== 'undefined',
+      updateCardInput.isCompleted ? 'marked completed' : 'unmarked completed',
+      id,
+
+      userId,
+    );
+
+    await this.logActivity(
+      updateCardInput.title !== oldCard.title &&
+        typeof updateCardInput.title !== 'undefined' &&
+        updateCardInput.title !== null,
+      `changed title "${oldCard.title}" -> "${updateCardInput.title}"`,
+      id,
+
+      userId,
+    );
+
+    await this.logActivity(
+      updateCardInput.description !== null &&
+        typeof updateCardInput.description !== 'undefined' &&
+        updateCardInput.description !== oldCard.description,
+      `updated description`,
+      id,
+      userId,
+    );
+
+    await this.logActivity(
+      updateCardInput.priority !== null &&
+        typeof updateCardInput.priority !== 'undefined' &&
+        updateCardInput.priority !== oldCard.priority,
+      `changed priority to "${updateCardInput.priority}"`,
+      id,
+      userId,
+    );
+
+    await this.logActivity(
+      (updateCardInput.dueDate != null &&
+        updateCardInput.dueDate !== oldCard.dueDate) ||
+        (updateCardInput.startDate != null &&
+          updateCardInput.startDate !== oldCard.startDate),
+      'updated date',
+      id,
+      userId,
+    );
 
     return updatedCard;
   }

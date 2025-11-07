@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { Checkbox } from "../ui/checkbox";
+
 import { Input } from "../ui/input";
 import { useClickAway } from "@/hooks/use-click-away";
 import {
@@ -13,11 +13,21 @@ import {
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import ChecklistItem from "./checklist-item";
+import { ChecklistItem as ChecklistItemType } from "@/libs/types";
 
-const CheckList = () => {
+const CheckList = ({
+  id,
+  title,
+  items,
+}: {
+  id: string;
+  title: string;
+  items: ChecklistItemType[] | [];
+}) => {
   const [isEditTitle, setIsEditTitle] = useState(false);
   const [isOpenCreate, setIsOpenCreate] = useState(false); //for add an item ui
   const titleRef = useRef(null);
+  const [checklistTitle, setChecklistTitle] = useState(title);
 
   useClickAway(titleRef, () => {
     setIsEditTitle(false);
@@ -29,13 +39,18 @@ const CheckList = () => {
         <div className="flex flex-row gap-4 items-center" ref={titleRef}>
           <CheckSquare2Icon />
           {isEditTitle ? (
-            <Input placeholder="Enter checklist title..." />
+            <Input
+              placeholder="Enter checklist title..."
+              value={checklistTitle}
+              className="text-xl font-medium "
+              onChange={(e) => setChecklistTitle(e.target.value)}
+            />
           ) : (
             <h3
               className="text-lg font-medium"
               onClick={() => setIsEditTitle(true)}
             >
-              Test Checklist Title
+              {title}
             </h3>
           )}
         </div>
@@ -49,9 +64,9 @@ const CheckList = () => {
         <Progress value={10} />
       </div>
       <div className="ml-4 flex flex-col gap-3">
-        <ChecklistItem />
-        <ChecklistItem />
-        <ChecklistItem />
+        {items?.map((item, i) => (
+          <ChecklistItem key={item.id} data={item} />
+        ))}
       </div>
       <div>
         {isOpenCreate ? (

@@ -150,9 +150,9 @@ model checklistItem {
   content       String
   isCompleted   Boolean       @default(false)
   checklistId   String
-  checklist     checklist     @relation(fields: [checklistId], references: [id])
+  checklist     checklist     @relation(fields: [checklistId], references: [id], onDelete: Cascade)
   assignMembers boardMember[] @relation("checklistItem_to_boardMembers")
-  startDate     DateTime
+  startDate     DateTime?
   dueDate       DateTime?
   orderIndex    Int           @default(0)
   createdAt     DateTime      @default(now())

@@ -9,6 +9,12 @@ export class User {
   username: string;
 
   @Field()
+  firstName: string;
+
+  @Field()
+  lastName: string;
+
+  @Field({ nullable: true })
   fullName: string;
 
   @Field()
