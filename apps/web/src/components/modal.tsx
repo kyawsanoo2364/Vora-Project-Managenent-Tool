@@ -14,6 +14,7 @@ const Modal = ({ children }: PropsWithChildren) => {
   return (
     <Dialog defaultOpen open onOpenChange={onHandleOpenChange}>
       <DialogOverlay>
+        <DialogTitle></DialogTitle>
         <DialogContent className="max-w-5xl min-w-5xl">
           {children}
         </DialogContent>

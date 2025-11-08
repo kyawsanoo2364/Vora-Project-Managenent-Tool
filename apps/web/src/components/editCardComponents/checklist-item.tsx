@@ -6,15 +6,34 @@ import { Button } from "../ui/button";
 import { ClockIcon, Trash2Icon, UserPlus2Icon } from "lucide-react";
 import { Input } from "../ui/input";
 import { ChecklistItem as ChecklistItemType } from "@/libs/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { string } from "zod";
+import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
+import { DELETE_CHECKlIST_ITEM } from "@/libs/utils/queryStringGraphql";
+import toast from "react-hot-toast";
 
 interface Props {
   data: ChecklistItemType;
+  boardId: string;
+  cardId: string;
 }
 
-const ChecklistItem = ({ data }: Props) => {
+const ChecklistItem = ({ data, boardId, cardId }: Props) => {
+  const queryClient = useQueryClient();
   const [isEdit, setIsEdit] = useState(false);
   const [content, setContent] = useState(data.content);
   const [checked, setChecked] = useState(data.isCompleted);
+
+  const removeChecklistItem = useMutation({
+    mutationFn: async ({ id, boardId }: { id: string; boardId: string }) =>
+      await fetchWithAuth(DELETE_CHECKlIST_ITEM, { id, boardId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
+  });
 
   return (
     <div className="flex flex-col w-full gap-2">
@@ -69,7 +88,14 @@ const ChecklistItem = ({ data }: Props) => {
               <Button variant={"ghost"} size={"sm"}>
                 <UserPlus2Icon />
               </Button>
-              <Button variant={"destructive"} size={"sm"}>
+              <Button
+                variant={"destructive"}
+                size={"sm"}
+                disabled={removeChecklistItem.isPending}
+                onClick={() =>
+                  removeChecklistItem.mutate({ id: data.id, boardId })
+                }
+              >
                 <Trash2Icon />
               </Button>
             </div>

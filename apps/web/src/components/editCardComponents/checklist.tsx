@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { FormEvent, useEffect, useRef, useState } from "react";
 
 import { Input } from "../ui/input";
 import { useClickAway } from "@/hooks/use-click-away";
@@ -14,24 +14,102 @@ import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import ChecklistItem from "./checklist-item";
 import { ChecklistItem as ChecklistItemType } from "@/libs/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
+import {
+  CREATE_CHECKLIST_ITEM,
+  DELETE_CHECKLIST,
+  UPDATE_CHECKLIST,
+} from "@/libs/utils/queryStringGraphql";
+import toast from "react-hot-toast";
+import { useDebounce } from "@/libs/hooks/useDebounce";
 
 const CheckList = ({
   id,
   title,
   items,
+  boardId,
+  cardId,
 }: {
   id: string;
   title: string;
   items: ChecklistItemType[] | [];
+  boardId: string;
+  cardId: string;
 }) => {
+  const queryClient = useQueryClient();
   const [isEditTitle, setIsEditTitle] = useState(false);
   const [isOpenCreate, setIsOpenCreate] = useState(false); //for add an item ui
   const titleRef = useRef(null);
-  const [checklistTitle, setChecklistTitle] = useState(title);
+  const [checklistTitle, setChecklistTitle] = useState<string>(title);
+  const checklistTitleDebounced = useDebounce(checklistTitle, 300);
+  const [itemName, setItemName] = useState("");
 
   useClickAway(titleRef, () => {
     setIsEditTitle(false);
   });
+
+  useEffect(() => {
+    if (
+      checklistTitleDebounced &&
+      checklistTitleDebounced !== title &&
+      checklistTitleDebounced.length > 0
+    ) {
+      updateChecklist.mutate({ title: checklistTitleDebounced });
+    }
+  }, [checklistTitleDebounced]);
+
+  const updateChecklist = useMutation({
+    mutationFn: async ({ title }: { title: string }) =>
+      await fetchWithAuth(UPDATE_CHECKLIST, { title, id, boardId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong");
+    },
+  });
+
+  const removeChecklist = useMutation({
+    mutationFn: async () =>
+      await fetchWithAuth(DELETE_CHECKLIST, { id, boardId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong.");
+    },
+  });
+
+  const createChecklistItem = useMutation({
+    mutationFn: async ({
+      content,
+      checklistId,
+      boardId,
+    }: {
+      content: string;
+      checklistId: string;
+      boardId: string;
+    }) =>
+      await fetchWithAuth(CREATE_CHECKLIST_ITEM, {
+        content,
+        checklistId,
+        boardId,
+      }),
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      setItemName("");
+    },
+  });
+
+  const onSubmitCreateItem = (e: FormEvent) => {
+    e.preventDefault();
+    if (itemName.length === 0) return;
+    createChecklistItem.mutate({ content: itemName, boardId, checklistId: id });
+  };
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -54,32 +132,49 @@ const CheckList = ({
             </h3>
           )}
         </div>
-        <Button variant={"destructive"}>
+        <Button
+          variant={"destructive"}
+          disabled={removeChecklist.isPending}
+          onClick={() => removeChecklist.mutate()}
+        >
           <Trash2Icon />
-          Delete
+          {removeChecklist.isPending ? "Deleting..." : "Delete"}
         </Button>
       </div>
       <div className="flex flex-col">
-        <span className="text-sm">10%</span>
-        <Progress value={10} />
+        <span className="text-sm">0%</span>
+        <Progress value={0} />
       </div>
       <div className="ml-4 flex flex-col gap-3">
         {items?.map((item, i) => (
-          <ChecklistItem key={item.id} data={item} />
+          <ChecklistItem
+            key={item.id}
+            data={item}
+            boardId={boardId}
+            cardId={cardId}
+          />
         ))}
       </div>
       <div>
         {isOpenCreate ? (
-          <form className=" ml-10 flex flex-col gap-2">
-            <Input placeholder="Add an item" />
+          <form
+            className=" ml-10 flex flex-col gap-2"
+            onSubmit={onSubmitCreateItem}
+          >
+            <Input
+              placeholder="Add an item"
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+            />
             <div className="flex flex-row items-center justify-between">
               <div className="flex flex-row items-center gap-2">
                 <Button
                   type="submit"
                   size={"sm"}
                   className="bg-blue-500 text-white hover:bg-blue-600"
+                  disabled={createChecklistItem.isPending}
                 >
-                  Add
+                  {createChecklistItem.isPending ? "Adding..." : "Add"}
                 </Button>
                 <Button
                   onClick={() => setIsOpenCreate(false)}

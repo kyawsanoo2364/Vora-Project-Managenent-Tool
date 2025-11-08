@@ -50,29 +50,6 @@ type UpdateCardArgsType = {
   isCompleted?: boolean;
 };
 
-const featureItems = [
-  {
-    label: "CheckList",
-    Icon: <ListCheckIcon className="size-4" />,
-    content: <ChecklistContent />,
-  },
-  {
-    label: "Attachment",
-    Icon: <LinkIcon className="size-4" />,
-    content: <AttachmentContent />,
-  },
-  {
-    label: "Member",
-    Icon: <UserPlusIcon className="size-4" />,
-    content: <MemberContent />,
-  },
-  {
-    label: "Dates",
-    Icon: <ClockIcon className="size-4" />,
-    content: <DateContent />,
-  },
-];
-
 const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
   const queryClient = useQueryClient();
   const [isCompleted, setIsCompleted] = useState(data.isCompleted);
@@ -87,6 +64,29 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
   useClickAway(titleRef, () => {
     if (isOpenTitleInput) setIsOpenTitleInput(false);
   });
+
+  const featureItems = [
+    {
+      label: "CheckList",
+      Icon: <ListCheckIcon className="size-4" />,
+      content: <ChecklistContent cardId={data.id} boardId={boardId} />,
+    },
+    {
+      label: "Attachment",
+      Icon: <LinkIcon className="size-4" />,
+      content: <AttachmentContent />,
+    },
+    {
+      label: "Member",
+      Icon: <UserPlusIcon className="size-4" />,
+      content: <MemberContent />,
+    },
+    {
+      label: "Dates",
+      Icon: <ClockIcon className="size-4" />,
+      content: <DateContent />,
+    },
+  ];
 
   const updateCardMutation = useMutation({
     mutationFn: async ({
@@ -118,8 +118,8 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
   });
 
   const onChangeCheckbox = async (value: boolean) => {
-    await updateCardMutation.mutateAsync({ id: data.id, isCompleted: value });
     setIsCompleted(value);
+    await updateCardMutation.mutateAsync({ id: data.id, isCompleted: value });
   };
 
   useEffect(() => {
@@ -216,7 +216,7 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
 
             <h3 className="font-medium text-xl text-slate-300">Description</h3>
           </div>
-          {!showEditor && data.description && data.description.length > 0 && (
+          {!showEditor && data.description && data.description?.length > 0 && (
             <Button
               variant={"ghost"}
               className="hover:bg-gray-200/10"
@@ -227,14 +227,14 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
           )}
           {!showEditor &&
             !data.description &&
-            data.description.length === 0 && (
+            data.description?.length === 0 && (
               <Button onClick={() => setShowEditor(true)}>
                 <PlusIcon />
                 <span>Add Description</span>
               </Button>
             )}
         </div>
-        {!showEditor && data.description && data.description.length > 0 && (
+        {!showEditor && data.description && data.description?.length > 0 && (
           <ScrollArea className="border border-gray-600 rounded-sm p-4 max-h-[200px]">
             <div dangerouslySetInnerHTML={{ __html: data.description }} />
           </ScrollArea>
@@ -276,6 +276,8 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
             id={checklist.id}
             key={checklist.id}
             items={checklist.items}
+            boardId={boardId}
+            cardId={data.id}
           />
         ))}
       </div>

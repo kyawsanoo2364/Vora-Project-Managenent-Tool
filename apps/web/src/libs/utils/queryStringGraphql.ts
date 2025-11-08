@@ -507,3 +507,64 @@ export const GET_CARD_BY_ID = gql`
     }
   }
 `;
+
+export const CREATE_CHECKLIST = gql`
+  mutation createChecklist(
+    $title: String!
+    $cardId: String!
+    $boardId: String!
+  ) {
+    createChecklist(
+      createChecklistInput: { title: $title, cardId: $cardId }
+      boardId: $boardId
+    ) {
+      id
+      title
+    }
+  }
+`;
+
+export const UPDATE_CHECKLIST = gql`
+  mutation updateChecklist($title: String!, $id: String!, $boardId: String!) {
+    updateChecklist(
+      updateChecklistInput: { title: $title, id: $id }
+      boardId: $boardId
+    ) {
+      title
+    }
+  }
+`;
+
+export const DELETE_CHECKLIST = gql`
+  mutation removeChecklist($id: String!, $boardId: String!) {
+    removeChecklist(id: $id, boardId: $boardId)
+  }
+`;
+
+export const CREATE_CHECKLIST_ITEM = gql`
+  mutation createChecklistItem(
+    $content: String!
+    $checklistId: String!
+    $boardId: String!
+  ) {
+    createChecklistItem(
+      createChecklistItemInput: { content: $content, checklistId: $checklistId }
+      boardId: $boardId
+    ) {
+      content
+    }
+  }
+`;
+
+export const UPDATE_CHECK_LIST_ITEM = gql`
+  mutation updateChecklistItem($id:String!,$content:String,$startDate:DateTime,$dueDate:DateTime){
+    
+  }
+
+`;
+
+export const DELETE_CHECKlIST_ITEM = gql`
+  mutation removeChecklistItem($id: String!, $boardId: String!) {
+    removeChecklistItem(id: $id, boardId: $boardId)
+  }
+`;

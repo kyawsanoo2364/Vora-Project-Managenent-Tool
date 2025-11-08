@@ -16,7 +16,7 @@ const StarredBoards = ({ workspaceId }: { workspaceId: string }) => {
 
   if (
     !isLoading &&
-    (!data.findStarredBoards || data.findStarredBoards.length <= 0)
+    (!data?.findStarredBoards || data?.findStarredBoards.length <= 0)
   ) {
     return null;
   }
