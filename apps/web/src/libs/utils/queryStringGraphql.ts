@@ -481,6 +481,7 @@ export const GET_CARD_BY_ID = gql`
             user {
               username
               firstName
+              lastName
               email
               avatar
             }
@@ -498,6 +499,7 @@ export const GET_CARD_BY_ID = gql`
         user {
           username
           firstName
+          lastName
           email
           avatar
         }
@@ -557,14 +559,84 @@ export const CREATE_CHECKLIST_ITEM = gql`
 `;
 
 export const UPDATE_CHECK_LIST_ITEM = gql`
-  mutation updateChecklistItem($id:String!,$content:String,$startDate:DateTime,$dueDate:DateTime){
-    
+  mutation updateChecklistItem(
+    $id: String!
+    $boardId: String!
+    $content: String
+    $startDate: DateTime
+    $dueDate: DateTime
+    $isCompleted: Boolean
+  ) {
+    updateChecklistItem(
+      updateChecklistItemInput: {
+        id: $id
+        content: $content
+        startDate: $startDate
+        dueDate: $dueDate
+        isCompleted: $isCompleted
+      }
+      boardId: $boardId
+    ) {
+      id
+    }
   }
-
 `;
 
 export const DELETE_CHECKlIST_ITEM = gql`
   mutation removeChecklistItem($id: String!, $boardId: String!) {
     removeChecklistItem(id: $id, boardId: $boardId)
+  }
+`;
+
+export const GET_ALL_BOARD_MEMBERS = gql`
+  query boardMembers($boardId: String!) {
+    boardMembers(boardId: $boardId) {
+      id
+      user {
+        fullName
+        avatar
+      }
+    }
+  }
+`;
+
+export const ASSIGN_MEMBER_TO_CARD = gql`
+  mutation addAssignMemberInCard(
+    $cardId: String!
+    $memberId: String!
+    $boardId: String!
+  ) {
+    addAssignMemberInCard(
+      assignMemberCardInput: { cardId: $cardId, memberId: $memberId }
+      boardId: $boardId
+    )
+  }
+`;
+
+export const REMOVE_ASSIGNED_MEMBER_FROM_CARD = gql`
+  mutation removeAssignMemberInCard(
+    $cardId: String!
+    $memberId: String!
+    $boardId: String!
+  ) {
+    removeAssignMemberInCard(
+      assignMemberCardInput: { cardId: $cardId, memberId: $memberId }
+      boardId: $boardId
+    )
+  }
+`;
+
+export const GET_ALL_ACTIVITIES_BY_CARD_ID = gql`
+  query getAllActivitiesByCardId($cardId: String!, $boardId: String!) {
+    getAllActivitiesByCardId(cardId: $cardId, boardId: $boardId) {
+      id
+      action
+      user {
+        firstName
+        lastName
+        avatar
+      }
+      createdAt
+    }
   }
 `;

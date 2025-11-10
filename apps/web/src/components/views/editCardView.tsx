@@ -59,7 +59,12 @@ const EditCardView = () => {
             <h3 className="text-lg font-semibold">Comments and Activities</h3>
           </div>
           <CommentInput />
-          <CommentsActivitiesSection />
+          {dataQuery.data && (
+            <CommentsActivitiesSection
+              cardId={dataQuery.data.id}
+              boardId={boardId}
+            />
+          )}
         </div>
       </ScrollArea>
     </div>

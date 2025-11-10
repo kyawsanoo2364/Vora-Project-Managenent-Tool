@@ -38,6 +38,8 @@ import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
 import { UPDATE_CARD } from "@/libs/utils/queryStringGraphql";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/libs/hooks/useDebounce";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { initialAvatarText } from "@/libs/utils/helpers";
 
 type UpdateCardArgsType = {
   id: string;
@@ -79,38 +81,51 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
     {
       label: "Member",
       Icon: <UserPlusIcon className="size-4" />,
-      content: <MemberContent />,
+      content: (
+        <MemberContent
+          boardId={boardId}
+          assignedMembers={data.assignMembers}
+          cardId={data.id}
+        />
+      ),
     },
     {
       label: "Dates",
       Icon: <ClockIcon className="size-4" />,
-      content: <DateContent />,
+      content: (
+        <DateContent
+          cardId={data.id}
+          boardId={boardId}
+          startDateData={data.startDate ? new Date(data.startDate) : undefined}
+          dueDateData={data.dueDate ? new Date(data.dueDate) : undefined}
+        />
+      ),
     },
   ];
 
   const updateCardMutation = useMutation({
     mutationFn: async ({
       id,
-
       description,
-      dueDate,
+
       isCompleted,
       priority,
-      startDate,
+
       title,
     }: UpdateCardArgsType) =>
       await fetchWithAuth(UPDATE_CARD, {
         id,
         boardId,
         description,
-        dueDate,
+
         isCompleted,
         priority,
-        startDate,
+
         title,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["card", data.id] });
+      queryClient.invalidateQueries({ queryKey: ["activities", data.id] });
     },
     onError: (err) => {
       toast.error(err.message || "Something went wrong!");
@@ -207,6 +222,62 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
             </SelectGroup>
           </SelectContent>
         </Select>
+      </div>
+      {/** header data */}
+      <div className="flex flex-row items-center gap-4 flex-wrap">
+        {/** date data */}
+        {data?.dueDate && (
+          <div className="p-2 rounded-md text-[12px] border border-gray-600 flex flex-row gap-2 items-center">
+            <ClockIcon className="size-3" />
+            {data.startDate && (
+              <>
+                <span>
+                  {" "}
+                  {new Date(data.startDate).toLocaleDateString("en-US", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+                <span>-</span>
+              </>
+            )}
+            <span>
+              {new Date(data.dueDate).toLocaleDateString("en-US", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })}
+            </span>
+          </div>
+        )}
+        {/** members */}
+        {data.assignMembers && data.assignMembers.length > 0 && (
+          <div className="flex flex-row items-center flex-wrap">
+            {data?.assignMembers?.map((m) => (
+              <Avatar key={m.id} className="cursor-pointer">
+                <AvatarImage src={m.user.avatar} alt={m.user.email} />
+                <AvatarFallback className="bg-blue-500">
+                  {initialAvatarText(`${m.user.firstName} ${m.user.lastName}`)}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="rounded-full p-2 bg-gray-400/10">
+                  <PlusIcon className="size-5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent>
+                <MemberContent
+                  assignedMembers={data.assignMembers}
+                  boardId={boardId}
+                  cardId={data.id}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
       {/**Description */}
       <div className="flex flex-col gap-2 mt-2">

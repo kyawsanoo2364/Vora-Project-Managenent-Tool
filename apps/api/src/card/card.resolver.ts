@@ -7,6 +7,8 @@ import { UseGuards } from '@nestjs/common';
 import { JWTAuthGuard } from 'src/auth/guard/guard.guard';
 import { BoardPermissionGuard } from 'src/common/board-permission/role.guard';
 import { BoardRole } from 'src/common/board-permission/board.role.decorator';
+import { AssignMemberCardInput } from './dto/assign-member-card.input';
+import { BoardMember } from 'src/board-member/entities/board-member.entity';
 
 @Resolver(() => Card)
 export class CardResolver {
@@ -55,6 +57,48 @@ export class CardResolver {
       updateCardInput.id,
       updateCardInput,
       context.req.user.id,
+    );
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
+  @Query(() => [BoardMember])
+  getAssignedMemberInCard(
+    @Args('cardId') cardId: string,
+    @Args('boardId') boardId: string,
+  ) {
+    return this.cardService.getAssignedMember(cardId, boardId);
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => String)
+  addAssignMemberInCard(
+    @Args('assignMemberCardInput') assignMemberCardInput: AssignMemberCardInput,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.cardService.addAssignMember(
+      assignMemberCardInput,
+      boardId,
+      userId,
+    );
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => String)
+  removeAssignMemberInCard(
+    @Args('assignMemberCardInput') assignMemberCardInput: AssignMemberCardInput,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.cardService.removeAssignMember(
+      assignMemberCardInput,
+      boardId,
+      userId,
     );
   }
 }

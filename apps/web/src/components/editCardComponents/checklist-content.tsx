@@ -39,6 +39,7 @@ const ChecklistContent = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
       setTitle("");
     },
   });

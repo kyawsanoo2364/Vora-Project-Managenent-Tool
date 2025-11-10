@@ -95,3 +95,14 @@ export interface ChecklistItem {
   orderIndex?: string | number;
   createdAt?: string;
 }
+
+export interface ActivityType {
+  id: string;
+  action: string;
+  user: {
+    firstName: string;
+    lastName: string;
+    avatar: string;
+  };
+  createdAt: string;
+}

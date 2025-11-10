@@ -6,16 +6,34 @@ import { cn, initialAvatarText } from "@/libs/utils/helpers";
 import { SmilePlusIcon } from "lucide-react";
 import RichTextEditor from "../rich-text-editor";
 import { Button } from "../ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
+import { GET_ALL_ACTIVITIES_BY_CARD_ID } from "@/libs/utils/queryStringGraphql";
+import { ActivityType } from "@/libs/types";
+import { formatDistanceToNow } from "date-fns";
 
-const CommentsActivitiesSection = () => {
+const CommentsActivitiesSection = ({
+  cardId,
+  boardId,
+}: {
+  cardId: string;
+  boardId: string;
+}) => {
+  const activitiesQuery = useQuery({
+    queryKey: ["activities", cardId],
+    queryFn: async () =>
+      (await fetchWithAuth(GET_ALL_ACTIVITIES_BY_CARD_ID, { cardId, boardId }))
+        ?.getAllActivitiesByCardId as ActivityType[],
+  });
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {/** comment item */}
-      <CommentItem />
-      <CommentItem />
+      {/* <CommentItem />
+      <CommentItem /> */}
       {/** activity item */}
-      {Array.from({ length: 10 }).map((_, i) => (
-        <ActivityItem key={i} />
+      {activitiesQuery.data?.map((a, i) => (
+        <ActivityItem key={i} data={a} />
       ))}
     </div>
   );
@@ -100,21 +118,23 @@ const CommentItem = () => {
   );
 };
 
-const ActivityItem = () => {
+const ActivityItem = ({ data }: { data: ActivityType }) => {
   return (
     <div className="flex flex-col">
-      <span className="text-sm text-slate-500 ml-9">3 hours ago</span>
+      <span className="text-sm text-slate-500 ml-9">
+        {formatDistanceToNow(new Date(data.createdAt), { addSuffix: true })}
+      </span>
       <div className="flex flex-row gap-2">
         <Avatar>
-          <AvatarImage src={""} alt="" />
+          <AvatarImage src={data.user.avatar} alt={data.user.firstName} />
           <AvatarFallback className="bg-blue-500">
-            {initialAvatarText("Kyaw San")}
+            {initialAvatarText(`${data.user.firstName} ${data.user.lastName}`)}
           </AvatarFallback>
         </Avatar>
 
         <p className="text-sm">
-          <strong>Kyaw San Oo</strong> Lorem ipsum dolor sit amet consectetur
-          adipisicing elit. At aliquam aspernatur quo dolore velit dolor.
+          <strong>{`${data.user.firstName} ${data.user.lastName}`}</strong>{" "}
+          {data.action}
         </p>
       </div>
     </div>

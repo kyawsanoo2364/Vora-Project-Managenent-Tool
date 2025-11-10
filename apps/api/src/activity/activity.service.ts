@@ -33,6 +33,9 @@ export class ActivityService {
       where: {
         cardId,
       },
+      include: {
+        user: true,
+      },
       orderBy: {
         createdAt: 'desc',
       },

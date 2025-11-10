@@ -7,9 +7,12 @@ import { ClockIcon, Trash2Icon, UserPlus2Icon } from "lucide-react";
 import { Input } from "../ui/input";
 import { ChecklistItem as ChecklistItemType } from "@/libs/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { string } from "zod";
+
 import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
-import { DELETE_CHECKlIST_ITEM } from "@/libs/utils/queryStringGraphql";
+import {
+  DELETE_CHECKlIST_ITEM,
+  UPDATE_CHECK_LIST_ITEM,
+} from "@/libs/utils/queryStringGraphql";
 import toast from "react-hot-toast";
 
 interface Props {
@@ -29,18 +32,58 @@ const ChecklistItem = ({ data, boardId, cardId }: Props) => {
       await fetchWithAuth(DELETE_CHECKlIST_ITEM, { id, boardId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
     },
     onError: (err) => {
       toast.error(err.message || "Something went wrong!");
     },
   });
 
+  const updateItem = useMutation({
+    mutationFn: async ({
+      content,
+      startDate,
+      dueDate,
+      isCompleted,
+    }: {
+      content?: string;
+      startDate?: string;
+      dueDate?: string;
+      isCompleted?: boolean;
+    }) =>
+      await fetchWithAuth(UPDATE_CHECK_LIST_ITEM, {
+        id: data.id,
+        content,
+        startDate,
+        dueDate,
+        boardId,
+        isCompleted,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      setIsEdit(false);
+      queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
+    },
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
+  });
+
+  const onUpdate = () => {
+    updateItem.mutate({ content });
+  };
+
+  const onCheckedMark = (value: boolean) => {
+    setChecked(value);
+    updateItem.mutate({ isCompleted: value });
+  };
+
   return (
     <div className="flex flex-col w-full gap-2">
       <div className="flex flex-row items-center gap-2">
         <Checkbox
           checked={checked}
-          onCheckedChange={(checked) => setChecked(!!checked)}
+          onCheckedChange={(checked) => onCheckedMark(!!checked)}
         />
         {isEdit ? (
           <div className="p-4 flex flex-col gap-4 w-full border rounded-md ">
@@ -51,7 +94,13 @@ const ChecklistItem = ({ data, boardId, cardId }: Props) => {
             />
             <div className="flex items-center  justify-between">
               <div className="flex items-center gap-2 ">
-                <Button size={"sm"}>Save</Button>
+                <Button
+                  onClick={onUpdate}
+                  disabled={updateItem.isPending}
+                  size={"sm"}
+                >
+                  {updateItem.isPending ? "Saving..." : "Save"}
+                </Button>
                 <Button
                   size={"sm"}
                   onClick={() => setIsEdit(false)}

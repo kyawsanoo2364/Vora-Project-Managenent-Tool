@@ -64,6 +64,7 @@ const CheckList = ({
       await fetchWithAuth(UPDATE_CHECKLIST, { title, id, boardId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
     },
     onError: (err) => {
       toast.error(err.message || "Something went wrong");
@@ -75,6 +76,7 @@ const CheckList = ({
       await fetchWithAuth(DELETE_CHECKLIST, { id, boardId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
     },
     onError: (err) => {
       toast.error(err.message || "Something went wrong.");

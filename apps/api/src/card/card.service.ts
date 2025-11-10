@@ -7,6 +7,7 @@ import { CreateCardInput } from './dto/create-card.input';
 import { UpdateCardInput } from './dto/update-card.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ActivityService } from 'src/activity/activity.service';
+import { AssignMemberCardInput } from './dto/assign-member-card.input';
 
 @Injectable()
 export class CardService {
@@ -67,6 +68,144 @@ export class CardService {
 
   findAll() {
     return `This action returns all card`;
+  }
+
+  async getAssignedMember(cardId: string, boardId: string) {
+    const card = await this.prisma.card.findUnique({
+      where: {
+        id: cardId,
+      },
+      include: {
+        assignMembers: {
+          include: { user: true },
+        },
+
+        list: {
+          select: {
+            boardId: true,
+          },
+        },
+      },
+    });
+    if (!card) throw new BadRequestException('Invalid card');
+    if (card.list.boardId !== boardId)
+      throw new BadRequestException('Invalid card or board');
+
+    return card.assignMembers;
+  }
+
+  async addAssignMember(
+    assignMemberCardInput: AssignMemberCardInput,
+    boardId: string,
+    userId: string,
+  ) {
+    const existingCard = await this.prisma.card.findUnique({
+      where: { id: assignMemberCardInput.cardId },
+      include: {
+        list: {
+          select: {
+            boardId: true,
+          },
+        },
+      },
+    });
+    if (!existingCard) throw new BadRequestException('Invalid card id');
+    if (existingCard.list.boardId !== boardId)
+      throw new BadRequestException('Invalid card id or board');
+    const member = await this.prisma.boardMember.findFirst({
+      where: {
+        id: assignMemberCardInput.memberId,
+        boardId,
+      },
+      include: {
+        user: {
+          select: { firstName: true, lastName: true },
+        },
+      },
+    });
+    if (!member) throw new BadRequestException('Invalid board member');
+
+    await this.prisma.card.update({
+      where: { id: assignMemberCardInput.cardId },
+      data: {
+        assignMembers: {
+          connect: {
+            id: assignMemberCardInput.memberId,
+          },
+        },
+      },
+    });
+
+    await this.activityService.create(
+      {
+        cardId: assignMemberCardInput.cardId,
+        action:
+          member.userId === userId
+            ? `joined the card "${existingCard.title}"`
+            : `added ${member.user.firstName} ${member.user.lastName} to this card`,
+      },
+      userId,
+    );
+
+    return 'Assigned member successfully!';
+  }
+
+  async removeAssignMember(
+    assignMemberCardInput: AssignMemberCardInput,
+    boardId: string,
+    userId: string,
+  ) {
+    const card = await this.prisma.card.findUnique({
+      where: { id: assignMemberCardInput.cardId },
+      include: {
+        list: {
+          select: {
+            boardId: true,
+          },
+        },
+      },
+    });
+    if (!card) throw new BadRequestException('Invalid card id');
+    if (card.list.boardId !== boardId)
+      throw new BadRequestException('Invalid card or board');
+    const member = await this.prisma.boardMember.findFirst({
+      where: {
+        id: assignMemberCardInput.memberId,
+        boardId,
+      },
+      include: {
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
+    });
+    if (!member) throw new BadRequestException('Invalid board member');
+    await this.prisma.card.update({
+      where: { id: assignMemberCardInput.cardId },
+      data: {
+        assignMembers: {
+          disconnect: {
+            id: assignMemberCardInput.memberId,
+          },
+        },
+      },
+    });
+
+    await this.activityService.create(
+      {
+        action:
+          userId === member.userId
+            ? `left from this card.`
+            : `removed ${member.user.firstName} ${member.user.lastName} from this card.`,
+        cardId: assignMemberCardInput.cardId,
+      },
+      userId,
+    );
+
+    return 'UnAssigned member successfully';
   }
 
   async getBoardIdFromCard(cardId: string) {

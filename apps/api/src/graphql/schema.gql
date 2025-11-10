@@ -166,6 +166,7 @@ type Query {
   getCardsByListId(listId: String!): [Card!]!
   getCardById(id: String!): Card!
   getBoardIdFromCard(cardId: String!): String!
+  getAssignedMemberInCard(cardId: String!, boardId: String!): [BoardMember!]!
   getAllActivitiesByCardId(cardId: String!, boardId: String!): [Activity!]!
   checklists(cardId: String!): [Checklist!]!
   comment(id: Int!): Comment!
@@ -203,6 +204,8 @@ type Mutation {
   removeWorkspaceMember(id: String!, workspaceId: String!): String!
   createCard(createCardInput: CreateCardInput!, boardId: String!): Card!
   updateCard(boardId: String!, updateCardInput: UpdateCardInput!): Card!
+  addAssignMemberInCard(assignMemberCardInput: AssignMemberCardInput!, boardId: String!): String!
+  removeAssignMemberInCard(assignMemberCardInput: AssignMemberCardInput!, boardId: String!): String!
   createActivity(createActivityInput: CreateActivityInput!): Activity!
   updateActivity(updateActivityInput: UpdateActivityInput!): Activity!
   removeActivity(id: Int!): Activity!
@@ -332,6 +335,11 @@ input UpdateCardInput {
   startDate: DateTime
   dueDate: DateTime
   isCompleted: Boolean
+}
+
+input AssignMemberCardInput {
+  cardId: String!
+  memberId: String!
 }
 
 input CreateActivityInput {
