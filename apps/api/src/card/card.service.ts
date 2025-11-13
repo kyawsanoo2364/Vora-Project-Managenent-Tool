@@ -8,6 +8,7 @@ import { UpdateCardInput } from './dto/update-card.input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ActivityService } from 'src/activity/activity.service';
 import { AssignMemberCardInput } from './dto/assign-member-card.input';
+import { validateFileUrl } from 'src/utils/validateFileUrl';
 
 @Injectable()
 export class CardService {
@@ -239,10 +240,17 @@ export class CardService {
       where: { id },
       include: {
         checklists: {
+          orderBy: {
+            createdAt: 'desc',
+          },
           include: {
             items: {
               include: {
-                assignMembers: true,
+                assignMembers: {
+                  include: {
+                    user: true,
+                  },
+                },
               },
             },
           },
@@ -329,5 +337,43 @@ export class CardService {
 
   remove(id: number) {
     return `This action removes a #${id} card`;
+  }
+
+  async addAttachmentFileFromURL(
+    cardId: string,
+    url: string,
+    userId: string,
+    boardId: string,
+  ) {
+    const { isValid, type } = await validateFileUrl(url);
+    if (!isValid) throw new BadRequestException('Invalid File URL.');
+
+    const card = await this.prisma.card.findUnique({
+      where: {
+        id: cardId,
+        list: {
+          boardId,
+        },
+      },
+    });
+    if (!card) throw new BadRequestException('Invalid card or board');
+
+    const media = await this.prisma.media.create({
+      data: {
+        filename: url.split('/').pop() || 'unknown',
+        type: type || 'unknown',
+        url: url,
+      },
+    });
+
+    const attachment = await this.prisma.attachment.create({
+      data: {
+        cardId,
+        mediaId: media.id,
+        userId,
+      },
+    });
+
+    return attachment;
   }
 }

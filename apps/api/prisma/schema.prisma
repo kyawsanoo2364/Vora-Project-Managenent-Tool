@@ -152,7 +152,7 @@ model checklistItem {
   checklistId   String
   checklist     checklist     @relation(fields: [checklistId], references: [id], onDelete: Cascade)
   assignMembers boardMember[] @relation("checklistItem_to_boardMembers")
-  startDate     DateTime?
+  
   dueDate       DateTime?
   orderIndex    Int           @default(0)
   createdAt     DateTime      @default(now())

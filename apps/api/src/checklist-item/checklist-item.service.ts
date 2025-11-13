@@ -23,6 +23,7 @@ export class ChecklistItemService {
 
     boardId: string,
   ) {
+    const { memberIds, dueDate, ...otherData } = createChecklistItemInput;
     const existingChecklist = await this.prisma.checklist.findUnique({
       where: {
         id: createChecklistItemInput.checklistId,
@@ -43,6 +44,22 @@ export class ChecklistItemService {
     if (existingChecklist.card.list.boardId !== boardId)
       throw new BadRequestException('Invalid checklist or board');
 
+    if (memberIds) {
+      await Promise.all(
+        memberIds.map(async (id) => {
+          const getBoardMember = await this.prisma.boardMember.findUnique({
+            where: { id },
+          });
+          if (!getBoardMember)
+            throw new BadRequestException('Invalid Board Member id');
+          if (getBoardMember.boardId !== boardId)
+            throw new BadRequestException(
+              `Board member ${id} does not belong to this board`,
+            );
+        }),
+      );
+    }
+
     const lastItem = await this.prisma.checklistItem.findFirst({
       where: {
         checklistId: createChecklistItemInput.checklistId,
@@ -53,11 +70,18 @@ export class ChecklistItemService {
     });
     const newItem = await this.prisma.checklistItem.create({
       data: {
-        ...createChecklistItemInput,
+        ...otherData,
+        assignMembers:
+          memberIds && memberIds.length > 0
+            ? {
+                connect: memberIds.map((id) => ({ id })),
+              }
+            : undefined,
         orderIndex:
           typeof lastItem?.orderIndex === 'number'
             ? lastItem.orderIndex + 1
             : 0,
+        dueDate: dueDate ? dueDate : undefined,
       },
     });
 
@@ -160,17 +184,17 @@ export class ChecklistItemService {
     }
 
     if (
-      (updateChecklistItemInput.startDate !== null &&
-        typeof updateChecklistItemInput.startDate !== 'undefined' &&
-        updateChecklistItemInput.startDate !== existingItem.startDate) ||
-      (updateChecklistItemInput.dueDate !== null &&
-        typeof updateChecklistItemInput.dueDate !== 'undefined' &&
-        updateChecklistItemInput.dueDate !== existingItem.dueDate)
+      typeof updateChecklistItemInput.dueDate !== 'undefined' &&
+      ((updateChecklistItemInput.dueDate === null &&
+        existingItem.dueDate !== null) ||
+        (updateChecklistItemInput.dueDate !== null &&
+          new Date(updateChecklistItemInput.dueDate).getTime() !==
+            existingItem.dueDate?.getTime()))
     ) {
       activityPromises.push(
         this.logActivity(
           true,
-          `updated dates on checklist item "${existingItem.content}"`,
+          `updated due date on checklist item "${existingItem.content}"`,
           userId,
           existingItem.checklist.card.id,
         ),
@@ -216,5 +240,138 @@ export class ChecklistItemService {
     await this.prisma.checklistItem.delete({ where: { id } });
 
     return 'Successfully checklist item removed.';
+  }
+
+  async addAssignMember(
+    id: string,
+    memberId: string,
+    boardId: string,
+    userId: string,
+  ) {
+    const item = await this.prisma.checklistItem.findFirst({
+      where: {
+        id,
+        checklist: {
+          card: {
+            list: {
+              boardId,
+            },
+          },
+        },
+      },
+      include: {
+        checklist: {
+          select: {
+            cardId: true,
+          },
+        },
+      },
+    });
+    if (!item) throw new BadRequestException('Invalid ChecklistItem or board');
+
+    const member = await this.prisma.boardMember.findFirst({
+      where: {
+        id: memberId,
+        boardId,
+      },
+      include: {
+        user: true,
+      },
+    });
+    if (!member) throw new BadRequestException('Invalid board member');
+
+    const alreadyAssigned = await this.prisma.checklistItem.findFirst({
+      where: {
+        id,
+        assignMembers: {
+          some: {
+            id: memberId,
+          },
+        },
+      },
+    });
+
+    if (alreadyAssigned)
+      throw new BadRequestException('Member already assigned!');
+
+    await this.prisma.checklistItem.update({
+      where: { id },
+      data: {
+        assignMembers: {
+          connect: {
+            id: memberId,
+          },
+        },
+      },
+    });
+
+    await this.logActivity(
+      true,
+      `added '${member.user.firstName} ${member.user.lastName}' to '${item.content}' checklist item`,
+      userId,
+      item.checklist.cardId,
+    );
+
+    return 'Member assigned successfully';
+  }
+
+  async removeAssignedMember(
+    id: string,
+    memberId: string,
+    boardId: string,
+    userId: string,
+  ) {
+    const checklistItem = await this.prisma.checklistItem.findFirst({
+      where: {
+        id,
+        checklist: {
+          card: {
+            list: {
+              boardId,
+            },
+          },
+        },
+        assignMembers: {
+          some: {
+            id: memberId,
+          },
+        },
+      },
+      include: {
+        checklist: {
+          select: { cardId: true },
+        },
+        assignMembers: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+    if (!checklistItem) throw new BadRequestException('Invalid Item or Member');
+
+    await this.prisma.checklistItem.update({
+      where: { id },
+      data: {
+        assignMembers: {
+          disconnect: {
+            id: memberId,
+          },
+        },
+      },
+    });
+
+    const removedUser = checklistItem.assignMembers.find(
+      (m) => m.id === memberId,
+    )?.user;
+
+    await this.logActivity(
+      true,
+      `removed '${removedUser ? removedUser.firstName + ' ' + removedUser.lastName : 'a user'} ' from '${checklistItem.content}'`,
+      userId,
+      checklistItem.checklist.cardId,
+    );
+
+    return 'Member removed successfully';
   }
 }

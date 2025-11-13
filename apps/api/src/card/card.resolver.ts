@@ -9,6 +9,7 @@ import { BoardPermissionGuard } from 'src/common/board-permission/role.guard';
 import { BoardRole } from 'src/common/board-permission/board.role.decorator';
 import { AssignMemberCardInput } from './dto/assign-member-card.input';
 import { BoardMember } from 'src/board-member/entities/board-member.entity';
+import { AttachmentEntity } from './entities/attachment.enitity';
 
 @Resolver(() => Card)
 export class CardResolver {
@@ -99,6 +100,24 @@ export class CardResolver {
       assignMemberCardInput,
       boardId,
       userId,
+    );
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => AttachmentEntity)
+  addAttachmentFromURL(
+    @Args('cardId') cardId: string,
+    @Args('url') url: string,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.cardService.addAttachmentFileFromURL(
+      cardId,
+      url,
+      userId,
+      boardId,
     );
   }
 }

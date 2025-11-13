@@ -474,7 +474,6 @@ export const GET_CARD_BY_ID = gql`
           id
           content
           isCompleted
-          startDate
           dueDate
           assignMembers {
             id
@@ -548,9 +547,16 @@ export const CREATE_CHECKLIST_ITEM = gql`
     $content: String!
     $checklistId: String!
     $boardId: String!
+    $dueDate: DateTime
+    $memberIds: [String!]
   ) {
     createChecklistItem(
-      createChecklistItemInput: { content: $content, checklistId: $checklistId }
+      createChecklistItemInput: {
+        content: $content
+        checklistId: $checklistId
+        dueDate: $dueDate
+        memberIds: $memberIds
+      }
       boardId: $boardId
     ) {
       content
@@ -563,7 +569,6 @@ export const UPDATE_CHECK_LIST_ITEM = gql`
     $id: String!
     $boardId: String!
     $content: String
-    $startDate: DateTime
     $dueDate: DateTime
     $isCompleted: Boolean
   ) {
@@ -571,7 +576,6 @@ export const UPDATE_CHECK_LIST_ITEM = gql`
       updateChecklistItemInput: {
         id: $id
         content: $content
-        startDate: $startDate
         dueDate: $dueDate
         isCompleted: $isCompleted
       }
@@ -595,6 +599,8 @@ export const GET_ALL_BOARD_MEMBERS = gql`
       user {
         fullName
         avatar
+        firstName
+        lastName
       }
     }
   }
@@ -638,5 +644,33 @@ export const GET_ALL_ACTIVITIES_BY_CARD_ID = gql`
       }
       createdAt
     }
+  }
+`;
+
+export const ADD_ASSIGN_MEMBER_IN_CHECKLIST_ITEM = gql`
+  mutation addAssignMemberInChecklistItem(
+    $id: String!
+    $memberId: String!
+    $boardId: String!
+  ) {
+    addAssignMemberInChecklistItem(
+      id: $id
+      memberId: $memberId
+      boardId: $boardId
+    )
+  }
+`;
+
+export const REMOVE_ASSIGNED_MEMBER_FROM_CHECKLIST_ITEM = gql`
+  mutation removeAssignedMemberFromChecklistItem(
+    $id: String!
+    $memberId: String!
+    $boardId: String!
+  ) {
+    removeAssignedMemberFromChecklistItem(
+      id: $id
+      memberId: $memberId
+      boardId: $boardId
+    )
   }
 `;

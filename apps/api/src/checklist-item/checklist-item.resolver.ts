@@ -65,4 +65,39 @@ export class ChecklistItemResolver {
   ) {
     return this.checklistItemService.remove(id, boardId);
   }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => String)
+  removeAssignedMemberFromChecklistItem(
+    @Args('id') id: string,
+    @Args('memberId') memberId: string,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.checklistItemService.removeAssignedMember(
+      id,
+      memberId,
+      boardId,
+      userId,
+    );
+  }
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => String)
+  addAssignMemberInChecklistItem(
+    @Args('id') id: string,
+    @Args('memberId') memberId: string,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.checklistItemService.addAssignMember(
+      id,
+      memberId,
+      boardId,
+      userId,
+    );
+  }
 }

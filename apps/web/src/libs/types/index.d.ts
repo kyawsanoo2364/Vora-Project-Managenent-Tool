@@ -1,6 +1,8 @@
 export type UserType = {
   id: string;
   username: string;
+  firstName: string;
+  lastName: string;
   fullName: string;
   email: string;
   avatar?: string;
@@ -91,6 +93,7 @@ export interface ChecklistItem {
   isCompleted: boolean;
   startDate: string | null;
   dueDate: string | null;
+  assignMembers: AssignMember[] | [];
   // optional fields
   orderIndex?: string | number;
   createdAt?: string;

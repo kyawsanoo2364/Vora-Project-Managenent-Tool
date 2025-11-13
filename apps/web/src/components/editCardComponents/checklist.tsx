@@ -13,7 +13,11 @@ import {
 import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
 import ChecklistItem from "./checklist-item";
-import { ChecklistItem as ChecklistItemType } from "@/libs/types";
+import {
+  AssignMember,
+  ChecklistItem as ChecklistItemType,
+  UserType,
+} from "@/libs/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
 import {
@@ -23,6 +27,10 @@ import {
 } from "@/libs/utils/queryStringGraphql";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/libs/hooks/useDebounce";
+import { Popover, PopoverContent, PopoverTrigger } from "../modern-ui/popover";
+import AssignMemberChecklistItemContent from "./assignMember-checklist-item-content";
+import AvatarGroup from "../avatar-group";
+import DueDateContent from "./dueDate-content";
 
 const CheckList = ({
   id,
@@ -44,6 +52,18 @@ const CheckList = ({
   const [checklistTitle, setChecklistTitle] = useState<string>(title);
   const checklistTitleDebounced = useDebounce(checklistTitle, 300);
   const [itemName, setItemName] = useState("");
+  {
+    /** just show in popover. no take to real database*/
+  }
+  const [itemDueDate, setItemDueDate] = useState<Date | undefined>(new Date());
+  {
+    /** real checklist item dueDate preview and take to database  */
+  }
+  const [previewItemDueDate, setPreviewItemDueDate] = useState<Date | null>(
+    null,
+  );
+  const [selectedChecklistItemMembers, setSelectedChecklistItemMembers] =
+    useState<AssignMember[] | []>([]);
 
   useClickAway(titleRef, () => {
     setIsEditTitle(false);
@@ -88,15 +108,21 @@ const CheckList = ({
       content,
       checklistId,
       boardId,
+      dueDate,
+      memberIds = [],
     }: {
       content: string;
       checklistId: string;
+      dueDate?: Date;
       boardId: string;
+      memberIds: string[] | [];
     }) =>
       await fetchWithAuth(CREATE_CHECKLIST_ITEM, {
         content,
         checklistId,
         boardId,
+        dueDate,
+        memberIds,
       }),
     onError: (err) => {
       toast.error(err.message || "Something went wrong!");
@@ -110,7 +136,15 @@ const CheckList = ({
   const onSubmitCreateItem = (e: FormEvent) => {
     e.preventDefault();
     if (itemName.length === 0) return;
-    createChecklistItem.mutate({ content: itemName, boardId, checklistId: id });
+    createChecklistItem.mutate({
+      content: itemName,
+      boardId,
+      checklistId: id,
+      dueDate: previewItemDueDate ?? undefined,
+      memberIds: selectedChecklistItemMembers.map((m) => m.id),
+    });
+    setPreviewItemDueDate(null);
+    setSelectedChecklistItemMembers([]);
   };
 
   return (
@@ -179,7 +213,10 @@ const CheckList = ({
                   {createChecklistItem.isPending ? "Adding..." : "Add"}
                 </Button>
                 <Button
-                  onClick={() => setIsOpenCreate(false)}
+                  onClick={() => {
+                    setIsOpenCreate(false);
+                    setSelectedChecklistItemMembers([]);
+                  }}
                   size={"sm"}
                   variant={"outline"}
                   type="button"
@@ -188,14 +225,75 @@ const CheckList = ({
                 </Button>
               </div>
               <div className="flex items-center gap-2">
-                <Button type="button" size={"sm"} variant={"ghost"}>
-                  <ClockIcon />
-                  Due Date
-                </Button>
-                <Button size={"sm"} variant={"ghost"} type="button">
-                  <UserPlusIcon />
-                  Assign Member
-                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button type="button" size={"sm"} variant={"ghost"}>
+                      <ClockIcon />
+                      {previewItemDueDate
+                        ? previewItemDueDate.toLocaleDateString("en-US", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                          })
+                        : "Due Date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent>
+                    <DueDateContent
+                      date={itemDueDate}
+                      setDate={setItemDueDate}
+                    />
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        onClick={() =>
+                          setPreviewItemDueDate(itemDueDate as Date)
+                        }
+                        className="bg-blue-500 text-white hover:bg-blue-600"
+                      >
+                        Add
+                      </Button>
+                      {previewItemDueDate && (
+                        <Button
+                          onClick={() => setPreviewItemDueDate(null)}
+                          className="bg-orange-600 text-white hover:bg-orange-700"
+                        >
+                          Remove Date
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                {selectedChecklistItemMembers &&
+                selectedChecklistItemMembers.length > 0 ? (
+                  <AvatarGroup
+                    users={selectedChecklistItemMembers.map(
+                      (m) => m.user as UserType,
+                    )}
+                    content={
+                      <AssignMemberChecklistItemContent
+                        boardId={boardId}
+                        selectedMembers={selectedChecklistItemMembers}
+                        setSelectedMembers={setSelectedChecklistItemMembers}
+                      />
+                    }
+                  />
+                ) : (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button size={"sm"} variant={"ghost"} type="button">
+                        <UserPlusIcon />
+                        Assign Member
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <AssignMemberChecklistItemContent
+                        boardId={boardId}
+                        selectedMembers={selectedChecklistItemMembers}
+                        setSelectedMembers={setSelectedChecklistItemMembers}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
               </div>
             </div>
           </form>

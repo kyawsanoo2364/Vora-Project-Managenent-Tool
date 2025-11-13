@@ -130,6 +130,13 @@ type Card {
   updatedAt: DateTime!
 }
 
+type AttachmentEntity {
+  id: String!
+  userId: String!
+  mediaId: String!
+  createdAt: String!
+}
+
 type Activity {
   id: String!
   action: String!
@@ -206,6 +213,7 @@ type Mutation {
   updateCard(boardId: String!, updateCardInput: UpdateCardInput!): Card!
   addAssignMemberInCard(assignMemberCardInput: AssignMemberCardInput!, boardId: String!): String!
   removeAssignMemberInCard(assignMemberCardInput: AssignMemberCardInput!, boardId: String!): String!
+  addAttachmentFromURL(cardId: String!, url: String!, boardId: String!): AttachmentEntity!
   createActivity(createActivityInput: CreateActivityInput!): Activity!
   updateActivity(updateActivityInput: UpdateActivityInput!): Activity!
   removeActivity(id: Int!): Activity!
@@ -218,6 +226,8 @@ type Mutation {
   createChecklistItem(createChecklistItemInput: CreateChecklistItemInput!, boardId: String!): ChecklistItem!
   updateChecklistItem(updateChecklistItemInput: UpdateChecklistItemInput!, boardId: String!): ChecklistItem!
   removeChecklistItem(id: String!, boardId: String!): String!
+  removeAssignedMemberFromChecklistItem(id: String!, memberId: String!, boardId: String!): String!
+  addAssignMemberInChecklistItem(id: String!, memberId: String!, boardId: String!): String!
 }
 
 input SignInInput {
@@ -380,15 +390,15 @@ input UpdateCommentInput {
 input CreateChecklistItemInput {
   content: String!
   checklistId: String!
-  startDate: DateTime
   dueDate: DateTime
+  memberIds: [String!]
 }
 
 input UpdateChecklistItemInput {
   content: String
   checklistId: String
-  startDate: DateTime
   dueDate: DateTime
+  memberIds: [String!]
   id: String!
   isCompleted: Boolean
 }

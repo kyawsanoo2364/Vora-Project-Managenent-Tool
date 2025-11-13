@@ -1,4 +1,4 @@
-import { Field, InputType } from '@nestjs/graphql';
+import { Field, GraphQLISODateTime, InputType } from '@nestjs/graphql';
 
 @InputType()
 export class CreateChecklistItemInput {
@@ -8,9 +8,9 @@ export class CreateChecklistItemInput {
   @Field()
   checklistId: string;
 
-  @Field({ nullable: true })
-  startDate?: Date;
-
-  @Field({ nullable: true })
+  @Field(() => GraphQLISODateTime, { nullable: true })
   dueDate?: Date;
+
+  @Field(() => [String], { nullable: true })
+  memberIds?: string[];
 }
