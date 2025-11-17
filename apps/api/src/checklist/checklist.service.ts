@@ -7,13 +7,12 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ChecklistService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    createChecklistInput: CreateChecklistInput,
-    userId: string,
+  private async validateForCreateAndGetLastChecklist(
+    cardId: string,
     boardId: string,
   ) {
     const card = await this.prisma.card.findUnique({
-      where: { id: createChecklistInput.cardId },
+      where: { id: cardId },
       include: {
         list: {
           select: {
@@ -27,12 +26,25 @@ export class ChecklistService {
       throw new BadRequestException('Invalid card or board');
     const lastCheckList = await this.prisma.checklist.findFirst({
       where: {
-        cardId: createChecklistInput.cardId,
+        cardId: cardId,
       },
       orderBy: {
         orderIndex: 'desc',
       },
     });
+
+    return lastCheckList;
+  }
+
+  async create(
+    createChecklistInput: CreateChecklistInput,
+    userId: string,
+    boardId: string,
+  ) {
+    const lastCheckList = await this.validateForCreateAndGetLastChecklist(
+      createChecklistInput.cardId,
+      boardId,
+    );
     const newCheckList = await this.prisma.checklist.create({
       data: {
         ...createChecklistInput,
@@ -47,11 +59,92 @@ export class ChecklistService {
       data: {
         action: `added a checklist "${createChecklistInput.title}"`,
         userId,
-        cardId: card.id,
+        cardId: createChecklistInput.cardId,
       },
     });
 
     return newCheckList;
+  }
+
+  async duplicate(
+    id: string,
+    createChecklistInput: CreateChecklistInput,
+    boardId: string,
+    userId: string,
+  ) {
+    const checklist = await this.prisma.checklist.findFirst({
+      where: {
+        id,
+        card: {
+          list: {
+            boardId,
+          },
+        },
+      },
+      include: {
+        items: {
+          include: {
+            assignMembers: true,
+          },
+        },
+      },
+    });
+    if (!checklist) throw new BadRequestException('Invalid checklist or board');
+    const lastCheckList = await this.validateForCreateAndGetLastChecklist(
+      createChecklistInput.cardId,
+      boardId,
+    );
+    const newCheckList = await this.prisma.checklist.create({
+      data: {
+        title: createChecklistInput.title,
+        cardId: createChecklistInput.cardId,
+        orderIndex: lastCheckList?.orderIndex
+          ? lastCheckList.orderIndex + 1
+          : 0,
+        items: {
+          createMany: {
+            data: checklist.items.map((data) => ({
+              content: data.content,
+              dueDate: data.dueDate,
+              isCompleted: data.isCompleted,
+              orderIndex: data.orderIndex,
+            })),
+          },
+        },
+      },
+      include: {
+        items: {
+          include: {
+            assignMembers: true,
+          },
+        },
+      },
+    });
+
+    await this.prisma.activity.create({
+      data: {
+        action: `added a checklist "${createChecklistInput.title}"`,
+        userId,
+        cardId: createChecklistInput.cardId,
+      },
+    });
+
+    return newCheckList;
+  }
+
+  async findAllByBoardId(boardId: string) {
+    return await this.prisma.checklist.findMany({
+      where: {
+        card: {
+          list: {
+            boardId,
+          },
+        },
+      },
+      include: {
+        items: true,
+      },
+    });
   }
 
   async findAll(cardId: string) {

@@ -6,23 +6,36 @@ import { setTokenCookies } from "./cookie";
 import { universalRedirect } from "./universalRedirect";
 
 export const fetchWithAuth = async (
-  query: string,
+  query?: string | null,
   variables?: Record<string, any>,
   options: RequestInit = {},
   fallback?: () => void,
+  url?: string | null,
 ) => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("vora_access_token")?.value;
   const refreshToken = cookieStore.get("vora_refresh_token")?.value;
   try {
-    return await fetchGraphQL(query, variables, {
-      ...options,
-      headers: {
-        ...options.headers,
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    if (query && !url) {
+      return await fetchGraphQL(query, variables, {
+        ...options,
+        headers: {
+          ...options.headers,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    } else if (url && !query) {
+      const res = await fetch(url, {
+        ...options,
+        headers: {
+          ...options.headers,
+
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      return await res?.json();
+    }
   } catch (error: any) {
     if (
       error.message.includes("401") ||
@@ -55,14 +68,26 @@ export const fetchWithAuth = async (
         }
         const result = await refreshRes.json();
         await setTokenCookies("vora_access_token", result.accessToken);
-        return await fetchGraphQL(query, variables, {
-          ...options,
-          headers: {
-            ...options.headers,
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${result.accessToken}`,
-          },
-        });
+        if (query && !url) {
+          return await fetchGraphQL(query, variables, {
+            ...options,
+            headers: {
+              ...options.headers,
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${result.accessToken}`,
+            },
+          });
+        } else if (url && !query) {
+          const res = await fetch(url, {
+            ...options,
+            headers: {
+              ...options.headers,
+
+              Authorization: `Bearer ${result.accessToken}`,
+            },
+          });
+          return await res.json();
+        }
       } catch (error) {
         console.log(error);
         if (fallback) {

@@ -25,9 +25,33 @@ export class ChecklistResolver {
   }
 
   @UseGuards(JWTAuthGuard)
+  @Query(() => [Checklist], { name: 'getAllChecklistByBoardId' })
+  findAllByBoardId(@Args('boardId') boardId: string) {
+    return this.checklistService.findAllByBoardId(boardId);
+  }
+
+  @UseGuards(JWTAuthGuard)
   @Query(() => [Checklist], { name: 'checklists' })
   findAll(@Args('cardId') cardId: string) {
     return this.checklistService.findAll(cardId);
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => Checklist)
+  duplicateChecklist(
+    @Args('checklistId') checklistId: string,
+    @Args('createChecklistInput') createChecklistInput: CreateChecklistInput,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.checklistService.duplicate(
+      checklistId,
+      createChecklistInput,
+      boardId,
+      userId,
+    );
   }
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)

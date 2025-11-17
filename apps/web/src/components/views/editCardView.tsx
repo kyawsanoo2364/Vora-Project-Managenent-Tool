@@ -44,15 +44,15 @@ const EditCardView = () => {
   });
 
   return (
-    <div className=" w-full    grid md:grid-cols-2 grid-cols-1">
-      <ScrollArea className="h-[90vh] w-full p-4">
+    <div className=" w-full grid lg:grid-cols-5 grid-cols-1">
+      <ScrollArea className="h-[90vh] w-full p-4 lg:col-span-3">
         {dataQuery.isLoading || boardIdLoading ? (
           <CardDetailsSkeleton />
         ) : dataQuery.data ? (
           <CardDetails data={dataQuery.data} boardId={boardId} />
         ) : null}
       </ScrollArea>
-      <ScrollArea className="h-[90vh] w-full p-4">
+      <ScrollArea className="h-[90vh] w-full p-4 lg:col-span-2">
         <div className="w-full flex flex-col gap-4">
           <div className="flex flex-row items-center gap-2">
             <MessageSquareIcon className="size-5" />

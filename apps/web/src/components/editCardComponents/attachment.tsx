@@ -6,10 +6,19 @@ import AttachmentItem from "./attachmentItem";
 import { Button } from "../ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "../modern-ui/popover";
 import AttachmentContent from "./attachment-content";
+import { AttachmentFileType } from "@/libs/types";
+import { cn } from "@/libs/utils/helpers";
 
-const Attachment = () => {
+interface Props {
+  data: AttachmentFileType[];
+  cardId: string;
+  boardId: string;
+  className?: string;
+}
+
+const Attachment = ({ data, cardId, boardId, className }: Props) => {
   return (
-    <div className="flex flex-col gap-3">
+    <div className={cn("w-full space-y-2", className)}>
       <div className="flex w-full items-center justify-between">
         <div className="flex flex-row items-center gap-2">
           <LinkIcon className="size-4" />
@@ -22,14 +31,21 @@ const Attachment = () => {
             </Button>
           </PopoverTrigger>
           <PopoverContent>
-            <AttachmentContent />
+            <AttachmentContent cardId={cardId} boardId={boardId} />
           </PopoverContent>
         </Popover>
       </div>
       <div className=" w-full">
         <h4 className="text-sm font-medium">Files</h4>
         <div className="flex flex-col gap-2 mt-4">
-          <AttachmentItem />
+          {data?.map((a, i) => (
+            <AttachmentItem
+              key={i}
+              data={a}
+              boardId={boardId}
+              cardId={cardId}
+            />
+          ))}
         </div>
       </div>
     </div>

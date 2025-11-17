@@ -40,6 +40,7 @@ import toast from "react-hot-toast";
 import { useDebounce } from "@/libs/hooks/useDebounce";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { initialAvatarText } from "@/libs/utils/helpers";
+import Attachment from "./attachment";
 
 type UpdateCardArgsType = {
   id: string;
@@ -76,7 +77,7 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
     {
       label: "Attachment",
       Icon: <LinkIcon className="size-4" />,
-      content: <AttachmentContent />,
+      content: <AttachmentContent cardId={data.id} boardId={boardId} />,
     },
     {
       label: "Member",
@@ -280,7 +281,7 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
         )}
       </div>
       {/**Description */}
-      <div className="flex flex-col gap-2 mt-2">
+      <div className="flex flex-col gap-2 mt-2 ">
         <div className="flex flex-row items-center justify-between">
           <div className="flex flex-row items-center gap-2">
             <LogsIcon className="text-slate-600 size-5" />
@@ -306,8 +307,11 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
             )}
         </div>
         {!showEditor && data.description && data.description?.length > 0 && (
-          <ScrollArea className="border border-gray-600 rounded-sm p-4 max-h-[200px]">
-            <div dangerouslySetInnerHTML={{ __html: data.description }} />
+          <ScrollArea className="border border-gray-600 rounded-sm p-4 ">
+            <div
+              dangerouslySetInnerHTML={{ __html: data.description }}
+              className="max-h-[200px]"
+            />
           </ScrollArea>
         )}
         {showEditor && (
@@ -336,9 +340,15 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
         )}
       </div>
       {/** Attachment */}
-      {/* <div className="flex flex-col gap-4 mt-2">
-    <Attachment />
-    </div> */}
+      {data.attachments?.length > 0 && (
+        <Attachment
+          data={data.attachments}
+          cardId={data.id}
+          boardId={boardId}
+          className="my-4"
+        />
+      )}
+
       {/** Checklist */}
       <div className="flex flex-col gap-4 mt-2">
         {data.checklists?.map((checklist, i) => (

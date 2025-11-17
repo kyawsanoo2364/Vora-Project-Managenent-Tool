@@ -1,11 +1,39 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class CommentService {
-  create(createCommentInput: CreateCommentInput) {
-    return 'This action adds a new comment';
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(
+    createCommentInput: CreateCommentInput,
+    boardId: string,
+    userId: string,
+  ) {
+    const { content, cardId } = createCommentInput;
+    const card = await this.prisma.card.findFirst({
+      where: {
+        id: cardId,
+        list: {
+          boardId,
+        },
+      },
+    });
+    if (!card) throw new BadRequestException('Invalid Card or Board');
+    const newComment = await this.prisma.comment.create({
+      data: {
+        content,
+        cardId,
+        userId,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    return newComment;
   }
 
   findAll() {

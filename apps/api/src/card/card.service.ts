@@ -9,12 +9,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ActivityService } from 'src/activity/activity.service';
 import { AssignMemberCardInput } from './dto/assign-member-card.input';
 import { validateFileUrl } from 'src/utils/validateFileUrl';
+import { MediaService } from 'src/media/media.service';
 
 @Injectable()
 export class CardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activityService: ActivityService,
+    private readonly media: MediaService,
   ) {}
 
   private async logActivity(
@@ -263,6 +265,7 @@ export class CardService {
         },
         attachments: {
           include: {
+            uploadedBy: true,
             media: true,
           },
         },
@@ -346,7 +349,8 @@ export class CardService {
     boardId: string,
   ) {
     const { isValid, type } = await validateFileUrl(url);
-    if (!isValid) throw new BadRequestException('Invalid File URL.');
+
+    if (!isValid) throw new BadRequestException('Invalid URL.');
 
     const card = await this.prisma.card.findUnique({
       where: {
@@ -374,6 +378,45 @@ export class CardService {
       },
     });
 
+    await this.prisma.activity.create({
+      data: {
+        action: `added attachment file`,
+        cardId,
+        userId,
+      },
+    });
+
     return attachment;
+  }
+
+  async addAttachmentFile(
+    cardId: string,
+    file: Express.Multer.File,
+    userId: string,
+    boardId: string,
+  ) {
+    const card = await this.prisma.card.findFirst({
+      where: {
+        id: cardId,
+        list: {
+          boardId,
+        },
+      },
+    });
+    if (!card) throw new BadRequestException('Invalid card or board');
+    const uploaded = await this.media.uploadFile(file);
+    const newAttachment = await this.prisma.attachment.create({
+      data: {
+        cardId,
+        userId,
+        mediaId: uploaded.data.fileId,
+      },
+      include: {
+        media: true,
+        uploadedBy: true,
+      },
+    });
+
+    return newAttachment;
   }
 }

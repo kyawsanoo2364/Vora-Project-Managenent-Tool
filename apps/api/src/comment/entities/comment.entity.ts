@@ -9,6 +9,9 @@ export class Comment {
   @Field()
   content: string;
 
+  @Field()
+  userId: string;
+
   @Field(() => User)
   user: User;
 

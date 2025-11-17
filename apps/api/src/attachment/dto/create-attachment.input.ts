@@ -1,10 +1,7 @@
 import { InputType, Int, Field } from '@nestjs/graphql';
 
 @InputType()
-export class CreateCommentInput {
+export class CreateAttachmentInput {
   @Field()
-  content: string;
-
-  @Field()
-  cardId: string;
+  filename: string;
 }

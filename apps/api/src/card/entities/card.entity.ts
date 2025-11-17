@@ -1,4 +1,5 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { AttachmentEntity } from 'src/attachment/entities/attachment.entity';
 
 import { BoardMember } from 'src/board-member/entities/board-member.entity';
 import { Checklist } from 'src/checklist/entities/checklist.entity';
@@ -32,6 +33,9 @@ export class Card {
 
   @Field(() => [BoardMember])
   assignMembers: BoardMember[];
+
+  @Field(() => [AttachmentEntity])
+  attachments: AttachmentEntity[];
 
   @Field(() => Int)
   orderIndex: number;

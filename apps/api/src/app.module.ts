@@ -21,6 +21,7 @@ import { ActivityModule } from './activity/activity.module';
 import { ChecklistModule } from './checklist/checklist.module';
 import { CommentModule } from './comment/comment.module';
 import { ChecklistItemModule } from './checklist-item/checklist-item.module';
+import { AttachmentModule } from './attachment/attachment.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ChecklistItemModule } from './checklist-item/checklist-item.module';
     ChecklistModule,
     CommentModule,
     ChecklistItemModule,
+    AttachmentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

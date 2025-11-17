@@ -503,6 +503,21 @@ export const GET_CARD_BY_ID = gql`
           avatar
         }
       }
+      attachments {
+        id
+        userId
+        uploadedBy {
+          firstName
+          lastName
+        }
+        mediaId
+        media {
+          url
+          filename
+          type
+        }
+        createdAt
+      }
       isCompleted
       createdAt
     }
@@ -672,5 +687,66 @@ export const REMOVE_ASSIGNED_MEMBER_FROM_CHECKLIST_ITEM = gql`
       memberId: $memberId
       boardId: $boardId
     )
+  }
+`;
+
+export const ADD_ATTACHMENT_FILE_USING_URL_TO_CARD = gql`
+  mutation addAttachmentFromURL(
+    $cardId: String!
+    $url: String!
+    $boardId: String!
+  ) {
+    addAttachmentFromURL(cardId: $cardId, url: $url, boardId: $boardId) {
+      id
+    }
+  }
+`;
+
+export const UPDATE_ATTACHMENT_IN_CARD = gql`
+  mutation updateAttachment(
+    $id: String!
+    $filename: String!
+    $boardId: String!
+  ) {
+    updateAttachment(
+      updateAttachmentInput: { id: $id, filename: $filename }
+      boardId: $boardId
+    ) {
+      id
+    }
+  }
+`;
+
+export const REMOVE_ATTACHMENT = gql`
+  mutation removeAttachment($id: String!, $boardId: String!) {
+    removeAttachment(id: $id, boardId: $boardId) {
+      id
+    }
+  }
+`;
+
+export const GET_ALL_CHECKLIST_BY_BOARD = gql`
+  query GetAllChecklistByBoardId($boardId: String!) {
+    getAllChecklistByBoardId(boardId: $boardId) {
+      id
+      title
+    }
+  }
+`;
+
+export const DUPLICATE_CHECKLIST = gql`
+  mutation DuplicateChecklist(
+    $checklistId: String!
+    $title: String!
+    $cardId: String!
+    $boardId: String!
+  ) {
+    duplicateChecklist(
+      checklistId: $checklistId
+      createChecklistInput: { title: $title, cardId: $cardId }
+      boardId: $boardId
+    ) {
+      id
+    }
   }
 `;

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
@@ -6,10 +7,11 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { GqlExecutionContext } from '@nestjs/graphql';
+import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import { Observable } from 'rxjs';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BOARD_ROLES_KEY } from './board.role.decorator';
+import { extractContext } from 'src/utils/extractContext';
 
 @Injectable()
 export class BoardPermissionGuard implements CanActivate {
@@ -25,11 +27,8 @@ export class BoardPermissionGuard implements CanActivate {
     ]);
 
     if (!requestRoles) return true;
-
-    const ctx = GqlExecutionContext.create(context);
-    const { user } = ctx.getContext().req;
-    const args = ctx.getArgs();
-
+    const { req, args } = extractContext(context);
+    const user = req.user;
     if (!user) {
       throw new UnauthorizedException();
     }
@@ -40,7 +39,7 @@ export class BoardPermissionGuard implements CanActivate {
       args.updateListInput?.boardId ||
       args.createListInput?.boardId;
     if (!boardId) {
-      throw new Error('boardId must be provided in arguments');
+      throw new BadRequestException('boardId must be provided in arguments');
     }
 
     const member = await this.prisma.boardMember.findFirst({

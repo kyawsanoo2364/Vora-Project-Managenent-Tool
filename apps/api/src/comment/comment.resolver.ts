@@ -1,16 +1,27 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql';
 import { CommentService } from './comment.service';
 import { Comment } from './entities/comment.entity';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
+import { UseGuards } from '@nestjs/common';
+import { JWTAuthGuard } from 'src/auth/guard/guard.guard';
+import { BoardPermissionGuard } from 'src/common/board-permission/role.guard';
+import { BoardRole } from 'src/common/board-permission/board.role.decorator';
 
 @Resolver(() => Comment)
 export class CommentResolver {
   constructor(private readonly commentService: CommentService) {}
 
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
   @Mutation(() => Comment)
-  createComment(@Args('createCommentInput') createCommentInput: CreateCommentInput) {
-    return this.commentService.create(createCommentInput);
+  createComment(
+    @Args('createCommentInput') createCommentInput: CreateCommentInput,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.commentService.create(createCommentInput, boardId, userId);
   }
 
   @Query(() => [Comment], { name: 'comment' })
@@ -24,8 +35,13 @@ export class CommentResolver {
   }
 
   @Mutation(() => Comment)
-  updateComment(@Args('updateCommentInput') updateCommentInput: UpdateCommentInput) {
-    return this.commentService.update(updateCommentInput.id, updateCommentInput);
+  updateComment(
+    @Args('updateCommentInput') updateCommentInput: UpdateCommentInput,
+  ) {
+    return this.commentService.update(
+      updateCommentInput.id,
+      updateCommentInput,
+    );
   }
 
   @Mutation(() => Comment)

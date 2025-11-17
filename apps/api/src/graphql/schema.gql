@@ -94,6 +94,15 @@ type WorkspaceMember {
   createdAt: DateTime!
 }
 
+type AttachmentEntity {
+  id: String!
+  userId: String!
+  uploadedBy: User!
+  mediaId: String!
+  media: Media!
+  createdAt: String!
+}
+
 type ChecklistItem {
   id: String!
   content: String!
@@ -124,17 +133,11 @@ type Card {
   description: String
   checklists: [Checklist!]!
   assignMembers: [BoardMember!]!
+  attachments: [AttachmentEntity!]!
   orderIndex: Int!
   isCompleted: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
-}
-
-type AttachmentEntity {
-  id: String!
-  userId: String!
-  mediaId: String!
-  createdAt: String!
 }
 
 type Activity {
@@ -147,6 +150,7 @@ type Activity {
 type Comment {
   id: String!
   content: String!
+  userId: String!
   user: User!
   createdAt: DateTime!
   updatedAt: DateTime!
@@ -175,9 +179,11 @@ type Query {
   getBoardIdFromCard(cardId: String!): String!
   getAssignedMemberInCard(cardId: String!, boardId: String!): [BoardMember!]!
   getAllActivitiesByCardId(cardId: String!, boardId: String!): [Activity!]!
+  getAllChecklistByBoardId(boardId: String!): [Checklist!]!
   checklists(cardId: String!): [Checklist!]!
   comment(id: Int!): Comment!
   checklistItems(checklistId: String!, boardId: String!): [ChecklistItem!]!
+  attachment: [AttachmentEntity!]!
 }
 
 type PaginatedType {
@@ -218,9 +224,10 @@ type Mutation {
   updateActivity(updateActivityInput: UpdateActivityInput!): Activity!
   removeActivity(id: Int!): Activity!
   createChecklist(createChecklistInput: CreateChecklistInput!, boardId: String!): Checklist!
+  duplicateChecklist(checklistId: String!, createChecklistInput: CreateChecklistInput!, boardId: String!): Checklist!
   updateChecklist(updateChecklistInput: UpdateChecklistInput!, boardId: String!): Checklist!
   removeChecklist(id: String!, boardId: String!): String!
-  createComment(createCommentInput: CreateCommentInput!): Comment!
+  createComment(createCommentInput: CreateCommentInput!, boardId: String!): Comment!
   updateComment(updateCommentInput: UpdateCommentInput!): Comment!
   removeComment(id: Int!): Comment!
   createChecklistItem(createChecklistItemInput: CreateChecklistItemInput!, boardId: String!): ChecklistItem!
@@ -228,6 +235,8 @@ type Mutation {
   removeChecklistItem(id: String!, boardId: String!): String!
   removeAssignedMemberFromChecklistItem(id: String!, memberId: String!, boardId: String!): String!
   addAssignMemberInChecklistItem(id: String!, memberId: String!, boardId: String!): String!
+  updateAttachment(updateAttachmentInput: UpdateAttachmentInput!, boardId: String!): AttachmentEntity!
+  removeAttachment(id: String!, boardId: String!): AttachmentEntity!
 }
 
 input SignInInput {
@@ -377,13 +386,13 @@ input UpdateChecklistInput {
 }
 
 input CreateCommentInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  content: String!
+  cardId: String!
 }
 
 input UpdateCommentInput {
-  """Example field (placeholder)"""
-  exampleField: Int
+  content: String
+  cardId: String
   id: Int!
 }
 
@@ -401,4 +410,9 @@ input UpdateChecklistItemInput {
   memberIds: [String!]
   id: String!
   isCompleted: Boolean
+}
+
+input UpdateAttachmentInput {
+  filename: String
+  id: String!
 }

@@ -64,7 +64,24 @@ export interface Card {
   isCompleted: boolean;
   createdAt: string;
   assignMembers: AssignMember[];
+  attachments: AttachmentFileType[];
   checklists: Checklist[];
+}
+
+export interface AttachmentFileType {
+  id: string;
+  userId: string;
+  uploadedBy: UserType;
+  mediaId: string;
+  media: MediaType;
+  createdAt: string;
+}
+
+export interface MediaType {
+  id: string;
+  url: string;
+  filename: string;
+  type: string;
 }
 
 export interface AssignMember {

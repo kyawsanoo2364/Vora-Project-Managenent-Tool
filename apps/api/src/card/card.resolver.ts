@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Args, Int, Context } from '@nestjs/graphql';
 import { CardService } from './card.service';
-import { Card } from './entities/card.entity';
+
 import { CreateCardInput } from './dto/create-card.input';
 import { UpdateCardInput } from './dto/update-card.input';
 import { UseGuards } from '@nestjs/common';
@@ -9,7 +9,8 @@ import { BoardPermissionGuard } from 'src/common/board-permission/role.guard';
 import { BoardRole } from 'src/common/board-permission/board.role.decorator';
 import { AssignMemberCardInput } from './dto/assign-member-card.input';
 import { BoardMember } from 'src/board-member/entities/board-member.entity';
-import { AttachmentEntity } from './entities/attachment.enitity';
+import { AttachmentEntity } from '../attachment/entities/attachment.entity';
+import { Card } from './entities/card.entity';
 
 @Resolver(() => Card)
 export class CardResolver {
