@@ -1,9 +1,8 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
 import { User } from 'src/user/entities/user.entity';
-import { ReplyComment } from './reply-comment.entity';
 
 @ObjectType()
-export class Comment {
+export class ReplyComment {
   @Field()
   id: string;
 
@@ -17,8 +16,8 @@ export class Comment {
   user: User;
 
   @Field()
-  createdAt: Date;
+  createdAt: string;
 
   @Field()
-  updatedAt: Date;
+  updatedAt: string;
 }

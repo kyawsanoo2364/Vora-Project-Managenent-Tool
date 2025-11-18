@@ -7,6 +7,12 @@ import { UseGuards } from '@nestjs/common';
 import { JWTAuthGuard } from 'src/auth/guard/guard.guard';
 import { BoardPermissionGuard } from 'src/common/board-permission/role.guard';
 import { BoardRole } from 'src/common/board-permission/board.role.decorator';
+import { ReplyComment } from './entities/reply-comment.entity';
+import { CreateReplyCommentInput } from './dto/create-reply-comment.input';
+import { PaginationArgs } from 'src/common/pagination/pagination.args';
+import { Paginated } from 'src/common/pagination/paginate.type';
+import { PaginatedComment, PaginatedReplies } from './types';
+import { UpdateReplyCommentInput } from './dto/update-reply-comment.input';
 
 @Resolver(() => Comment)
 export class CommentResolver {
@@ -24,23 +30,81 @@ export class CommentResolver {
     return this.commentService.create(createCommentInput, boardId, userId);
   }
 
-  @Query(() => [Comment], { name: 'comment' })
-  findAll() {
-    return this.commentService.findAll();
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => ReplyComment)
+  createReplyComment(
+    @Args('createReplyCommentInput')
+    createReplyCommentInput: CreateReplyCommentInput,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.commentService.createReplyComment(
+      createReplyCommentInput,
+      boardId,
+      userId,
+    );
   }
 
-  @Query(() => Comment, { name: 'comment' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.commentService.findOne(id);
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
+  @Query(() => PaginatedComment, { name: 'comments' })
+  findAll(
+    @Args('cardId') cardId: string,
+    @Args('boardId') boardId: string,
+    @Args() paginationArgs: PaginationArgs,
+  ) {
+    return this.commentService.findAll(cardId, boardId, paginationArgs);
   }
 
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
+  @Query(() => PaginatedReplies, { name: 'replyComments' })
+  findAllReplies(
+    @Args('commentId') commentId: string,
+    @Args('boardId') boardId: string,
+    @Args() paginationArgs: PaginationArgs,
+  ) {
+    return this.commentService.findAllReplies(
+      commentId,
+      boardId,
+      paginationArgs,
+    );
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
   @Mutation(() => Comment)
   updateComment(
     @Args('updateCommentInput') updateCommentInput: UpdateCommentInput,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
   ) {
-    return this.commentService.update(
+    const userId = context.req.user.id;
+    return this.commentService.updateComment(
       updateCommentInput.id,
       updateCommentInput,
+      boardId,
+      userId,
+    );
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => Comment)
+  updateReplyComment(
+    @Args('updateReplyCommentInput')
+    updateReplyCommentInput: UpdateReplyCommentInput,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.commentService.updateReplyComment(
+      updateReplyCommentInput.id,
+      updateReplyCommentInput,
+      boardId,
+      userId,
     );
   }
 

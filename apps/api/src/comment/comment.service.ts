@@ -1,7 +1,16 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateReplyCommentInput } from './dto/create-reply-comment.input';
+import { PaginationArgs } from 'src/common/pagination/pagination.args';
+import { paginateQuery } from 'src/common/pagination/pagination.helper';
+import { Comment } from './entities/comment.entity';
+import { ReplyComment } from './entities/reply-comment.entity';
 
 @Injectable()
 export class CommentService {
@@ -36,16 +45,172 @@ export class CommentService {
     return newComment;
   }
 
-  findAll() {
-    return `This action returns all comment`;
+  async createReplyComment(
+    createCommentInput: CreateReplyCommentInput,
+    boardId: string,
+    userId: string,
+  ) {
+    const { content, replyToId } = createCommentInput;
+    const comment = await this.prisma.comment.findFirst({
+      where: {
+        id: replyToId,
+        card: {
+          list: {
+            boardId,
+          },
+        },
+      },
+    });
+    if (!comment) throw new BadRequestException('Invalid comment or board');
+    const newReply = await this.prisma.replyComment.create({
+      data: {
+        content,
+        userId,
+        replyToId,
+      },
+    });
+
+    return newReply;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} comment`;
+  async findAll(
+    cardId: string,
+    boardId: string,
+    paginationArgs: PaginationArgs,
+  ) {
+    const card = await this.prisma.card.findFirst({
+      where: {
+        id: cardId,
+        list: {
+          boardId,
+        },
+      },
+    });
+    if (!card) throw new BadRequestException('Invalid card or board');
+
+    const data = await paginateQuery<Comment>(
+      this.prisma,
+      this.prisma.comment,
+      {
+        cursor: paginationArgs.cursor,
+        take: paginationArgs.take,
+        where: {
+          cardId,
+        },
+        include: {
+          user: true,
+        },
+      },
+    );
+
+    return data;
   }
 
-  update(id: number, updateCommentInput: UpdateCommentInput) {
-    return `This action updates a #${id} comment`;
+  async findAllReplies(
+    commentId: string,
+    boardId: string,
+    paginationArgs: PaginationArgs,
+  ) {
+    const comment = await this.prisma.comment.findFirst({
+      where: {
+        id: commentId,
+        card: {
+          list: {
+            boardId,
+          },
+        },
+      },
+    });
+    if (!comment) throw new BadRequestException('Invalid comment or board');
+
+    const data = await paginateQuery<ReplyComment>(
+      this.prisma,
+      this.prisma.replyComment,
+      {
+        cursor: paginationArgs.cursor,
+        take: paginationArgs.take,
+        where: {
+          replyToId: commentId,
+        },
+        include: {
+          user: true,
+        },
+      },
+    );
+
+    return data;
+  }
+
+  async updateComment(
+    id: string,
+    updateCommentInput: UpdateCommentInput,
+    boardId: string,
+    userId: string,
+  ) {
+    const comment = await this.prisma.comment.findFirst({
+      where: {
+        id,
+        card: {
+          list: {
+            boardId,
+          },
+        },
+      },
+    });
+
+    if (!comment) throw new BadRequestException('Invalid Comment');
+    if (comment.userId !== userId)
+      throw new ForbiddenException(
+        'Access denied: You can only update comments that you own.',
+      );
+    const updatedComment = await this.prisma.comment.update({
+      where: { id },
+      data: {
+        content: updateCommentInput.content,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    return updatedComment;
+  }
+
+  async updateReplyComment(
+    id: string,
+    updateReplyCommentInput: UpdateCommentInput,
+    boardId: string,
+    userId: string,
+  ) {
+    const replyComment = await this.prisma.replyComment.findFirst({
+      where: {
+        id,
+        replyTo: {
+          card: {
+            list: {
+              boardId,
+            },
+          },
+        },
+      },
+    });
+
+    if (!replyComment) throw new BadRequestException('Invalid Comment');
+    if (replyComment.userId !== userId)
+      throw new ForbiddenException(
+        'Access denied: You can only update comments that you own.',
+      );
+    const updatedReplyComment = await this.prisma.replyComment.update({
+      where: { id },
+      data: {
+        content: updateReplyCommentInput.content,
+      },
+      include: {
+        user: true,
+      },
+    });
+
+    return updatedReplyComment;
   }
 
   remove(id: number) {

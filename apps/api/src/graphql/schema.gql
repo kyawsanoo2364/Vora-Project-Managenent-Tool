@@ -64,6 +64,11 @@ type Board {
   starred: [StarredBoardEntity!]!
 }
 
+type BoardPagination {
+  items: [Board!]!
+  nextCursor: String
+}
+
 type List {
   id: String!
   name: String!
@@ -156,6 +161,25 @@ type Comment {
   updatedAt: DateTime!
 }
 
+type ReplyComment {
+  id: String!
+  content: String!
+  userId: String!
+  user: User!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type CommentPagination {
+  items: [Comment!]!
+  nextCursor: String
+}
+
+type ReplyCommentPagination {
+  items: [ReplyComment!]!
+  nextCursor: String
+}
+
 type Query {
   authWelcome: String!
   refreshToken(refreshToken: String!): Auth!
@@ -163,7 +187,7 @@ type Query {
   getUsersByNameOrEmail(searchTerms: String!): [User!]!
   get_all_my_workspaces: [Workspace!]!
   workspace(id: Int!): Workspace!
-  getAllBoards(workspaceId: String!, take: Int! = 10, cursor: String, sort: String, search: String): PaginatedType!
+  getAllBoards(workspaceId: String!, take: Int! = 10, cursor: String, sort: String, search: String): BoardPagination!
   getBoard(boardId: String!): Board!
   findStarredBoards(workspaceId: String!): [Board!]!
   list(boardId: String!): [List!]!
@@ -181,14 +205,10 @@ type Query {
   getAllActivitiesByCardId(cardId: String!, boardId: String!): [Activity!]!
   getAllChecklistByBoardId(boardId: String!): [Checklist!]!
   checklists(cardId: String!): [Checklist!]!
-  comment(id: Int!): Comment!
+  comments(cardId: String!, boardId: String!, take: Int! = 10, cursor: String): CommentPagination!
+  replyComments(commentId: String!, boardId: String!, take: Int! = 10, cursor: String): ReplyCommentPagination!
   checklistItems(checklistId: String!, boardId: String!): [ChecklistItem!]!
   attachment: [AttachmentEntity!]!
-}
-
-type PaginatedType {
-  items: [Board!]!
-  nextCursor: String
 }
 
 type Mutation {
@@ -228,7 +248,9 @@ type Mutation {
   updateChecklist(updateChecklistInput: UpdateChecklistInput!, boardId: String!): Checklist!
   removeChecklist(id: String!, boardId: String!): String!
   createComment(createCommentInput: CreateCommentInput!, boardId: String!): Comment!
-  updateComment(updateCommentInput: UpdateCommentInput!): Comment!
+  createReplyComment(createReplyCommentInput: CreateReplyCommentInput!, boardId: String!): ReplyComment!
+  updateComment(updateCommentInput: UpdateCommentInput!, boardId: String!): Comment!
+  updateReplyComment(updateReplyCommentInput: UpdateReplyCommentInput!, boardId: String!): Comment!
   removeComment(id: Int!): Comment!
   createChecklistItem(createChecklistItemInput: CreateChecklistItemInput!, boardId: String!): ChecklistItem!
   updateChecklistItem(updateChecklistItemInput: UpdateChecklistItemInput!, boardId: String!): ChecklistItem!
@@ -390,10 +412,21 @@ input CreateCommentInput {
   cardId: String!
 }
 
+input CreateReplyCommentInput {
+  content: String!
+  replyToId: String!
+}
+
 input UpdateCommentInput {
   content: String
   cardId: String
-  id: Int!
+  id: String!
+}
+
+input UpdateReplyCommentInput {
+  content: String!
+  replyToId: String!
+  id: String!
 }
 
 input CreateChecklistItemInput {

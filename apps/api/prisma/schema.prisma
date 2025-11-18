@@ -19,6 +19,7 @@ model user {
   workspaceMembers workspaceMember[]
   boardMembers     boardMember[]
   comments         comment[]
+  replyComments    replyComment[]
   activities       activity[]
   workspaces       workspace[]
   starredBoards    starredBoard[]
@@ -135,13 +136,24 @@ model card {
 }
 
 model comment {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   content   String
   userId    String
-  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      user           @relation(fields: [userId], references: [id], onDelete: Cascade)
   cardId    String
-  card      card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  
+  card      card           @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  replies   replyComment[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model replyComment {
+  id        String   @id @default(uuid())
+  content   String
+  replyToId String
+  replyTo   comment  @relation(fields: [replyToId], references: [id], onDelete: Cascade)
+  userId    String
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -153,10 +165,10 @@ model checklistItem {
   checklistId   String
   checklist     checklist     @relation(fields: [checklistId], references: [id], onDelete: Cascade)
   assignMembers boardMember[] @relation("checklistItem_to_boardMembers")
-  
-  dueDate       DateTime?
-  orderIndex    Int           @default(0)
-  createdAt     DateTime      @default(now())
+
+  dueDate    DateTime?
+  orderIndex Int       @default(0)
+  createdAt  DateTime  @default(now())
 }
 
 model checklist {
@@ -185,9 +197,9 @@ model activity {
   id        String   @id @default(uuid())
   action    String
   cardId    String?
-  card      card?    @relation(fields: [cardId], references: [id],onDelete: Cascade)
+  card      card?    @relation(fields: [cardId], references: [id], onDelete: Cascade)
   listId    String?
-  list      list?    @relation(fields: [listId], references: [id],onDelete: Cascade)
+  list      list?    @relation(fields: [listId], references: [id], onDelete: Cascade)
   userId    String
   user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -199,7 +211,7 @@ model media {
   filename   String
   type       String
   workspace  workspace?
-  attachment attachment? 
+  attachment attachment?
   createdAt  DateTime    @default(now())
 }
 
