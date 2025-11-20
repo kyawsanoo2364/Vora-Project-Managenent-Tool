@@ -750,3 +750,62 @@ export const DUPLICATE_CHECKLIST = gql`
     }
   }
 `;
+
+export const GET_ALL_COMMENTS = gql`
+  query comments(
+    $cardId: String!
+    $boardId: String!
+    $take: Int
+    $cursor: String
+  ) {
+    comments(cardId: $cardId, boardId: $boardId, take: $take, cursor: $cursor) {
+      items {
+        id
+        content
+        createdAt
+        updatedAt
+        user {
+          id
+          firstName
+          lastName
+          avatar
+        }
+      }
+      nextCursor
+    }
+  }
+`;
+
+export const CREATE_COMMENT = gql`
+  mutation CreateComment(
+    $content: String!
+    $cardId: String!
+    $boardId: String!
+  ) {
+    createComment(
+      createCommentInput: { content: $content, cardId: $cardId }
+      boardId: $boardId
+    ) {
+      id
+    }
+  }
+`;
+
+export const UPDATE_COMMENT = gql`
+  mutation updateComment($id: String!, $content: String!, $boardId: String!) {
+    updateComment(
+      updateCommentInput: { id: $id, content: $content }
+      boardId: $boardId
+    ) {
+      id
+    }
+  }
+`;
+
+export const REMOVE_COMMENT = gql`
+  mutation removeComment($id: String!, $boardId: String!) {
+    removeComment(id: $id, boardId: $boardId) {
+      id
+    }
+  }
+`;

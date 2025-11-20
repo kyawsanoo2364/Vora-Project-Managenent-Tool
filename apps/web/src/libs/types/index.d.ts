@@ -126,3 +126,11 @@ export interface ActivityType {
   };
   createdAt: string;
 }
+
+export interface CommentType {
+  id: string;
+  content: string;
+  user: UserType;
+  createdAt: string;
+  updatedAt: string;
+}

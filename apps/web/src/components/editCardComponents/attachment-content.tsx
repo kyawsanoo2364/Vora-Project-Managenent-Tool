@@ -62,10 +62,13 @@ const AttachmentContent = ({
       });
     },
     onSuccess: (data) => {
+      if (data?.statusCode > 200) {
+        toast.error(data?.error, { id: toastId as string });
+        return;
+      }
       toast.success("Uploaded file successfully.", { id: toastId as string });
       queryClient.invalidateQueries({ queryKey: ["card", cardId] });
       queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
-      console.log(data);
     },
   });
 

@@ -58,7 +58,7 @@ const EditCardView = () => {
             <MessageSquareIcon className="size-5" />
             <h3 className="text-lg font-semibold">Comments and Activities</h3>
           </div>
-          <CommentInput />
+          <CommentInput cardId={cardId as string} boardId={boardId} />
           {dataQuery.data && (
             <CommentsActivitiesSection
               cardId={dataQuery.data.id}

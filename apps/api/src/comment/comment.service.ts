@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateCommentInput } from './dto/create-comment.input';
 import { UpdateCommentInput } from './dto/update-comment.input';
@@ -99,6 +100,9 @@ export class CommentService {
         },
         include: {
           user: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
         },
       },
     );
@@ -213,7 +217,79 @@ export class CommentService {
     return updatedReplyComment;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} comment`;
+  async removeComment(id: string, userId: string, boardId: string) {
+    const comment = await this.prisma.comment.findFirst({
+      where: {
+        id,
+        card: {
+          list: {
+            boardId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+    if (!comment) throw new BadRequestException('Invalid Comment or board');
+    const boardMember = await this.prisma.boardMember.findFirst({
+      where: {
+        boardId,
+        userId,
+      },
+      select: {
+        role: true,
+      },
+    });
+    if (!boardMember)
+      throw new UnauthorizedException('You are not a member of this board.');
+
+    if (comment.userId !== userId && boardMember.role !== 'ADMIN')
+      throw new ForbiddenException(
+        'You do not have permission to delete this comment.',
+      );
+    const deletedComment = await this.prisma.comment.delete({ where: { id } });
+    return deletedComment;
+  }
+
+  async removeReplyComment(id: string, userId: string, boardId: string) {
+    const comment = await this.prisma.replyComment.findFirst({
+      where: {
+        id,
+        replyTo: {
+          card: {
+            list: {
+              boardId,
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+      },
+    });
+    if (!comment) throw new BadRequestException('Invalid Comment or board');
+    const boardMember = await this.prisma.boardMember.findFirst({
+      where: {
+        boardId,
+        userId,
+      },
+      select: {
+        role: true,
+      },
+    });
+    if (!boardMember)
+      throw new UnauthorizedException('You are not a member of this board.');
+
+    if (comment.userId !== userId && boardMember.role !== 'ADMIN')
+      throw new ForbiddenException(
+        'You do not have permission to delete this comment.',
+      );
+    const deletedComment = await this.prisma.replyComment.delete({
+      where: { id },
+    });
+    return deletedComment;
   }
 }

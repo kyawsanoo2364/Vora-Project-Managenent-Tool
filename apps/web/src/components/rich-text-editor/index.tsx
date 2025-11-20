@@ -7,6 +7,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
 
 import { cn } from "@/libs/utils/helpers";
+import { useMount } from "@/hooks/use-mount";
 
 interface Props {
   value?: string;

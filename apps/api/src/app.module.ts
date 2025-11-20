@@ -22,6 +22,7 @@ import { ChecklistModule } from './checklist/checklist.module';
 import { CommentModule } from './comment/comment.module';
 import { ChecklistItemModule } from './checklist-item/checklist-item.module';
 import { AttachmentModule } from './attachment/attachment.module';
+import { ReactionToCommentModule } from './reaction-to-comment/reaction-to-comment.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { AttachmentModule } from './attachment/attachment.module';
     CommentModule,
     ChecklistItemModule,
     AttachmentModule,
+    ReactionToCommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

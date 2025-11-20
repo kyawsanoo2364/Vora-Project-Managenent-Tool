@@ -180,6 +180,16 @@ type ReplyCommentPagination {
   nextCursor: String
 }
 
+type ReactionToComment {
+  id: String!
+  emoji: String!
+  userId: String!
+  user: User!
+  commentId: String!
+  comment: Comment!
+  createdAt: String!
+}
+
 type Query {
   authWelcome: String!
   refreshToken(refreshToken: String!): Auth!
@@ -251,7 +261,8 @@ type Mutation {
   createReplyComment(createReplyCommentInput: CreateReplyCommentInput!, boardId: String!): ReplyComment!
   updateComment(updateCommentInput: UpdateCommentInput!, boardId: String!): Comment!
   updateReplyComment(updateReplyCommentInput: UpdateReplyCommentInput!, boardId: String!): Comment!
-  removeComment(id: Int!): Comment!
+  removeComment(id: String!, boardId: String!): Comment!
+  removeReplyComment(id: String!, boardId: String!): ReplyComment!
   createChecklistItem(createChecklistItemInput: CreateChecklistItemInput!, boardId: String!): ChecklistItem!
   updateChecklistItem(updateChecklistItemInput: UpdateChecklistItemInput!, boardId: String!): ChecklistItem!
   removeChecklistItem(id: String!, boardId: String!): String!
@@ -259,6 +270,7 @@ type Mutation {
   addAssignMemberInChecklistItem(id: String!, memberId: String!, boardId: String!): String!
   updateAttachment(updateAttachmentInput: UpdateAttachmentInput!, boardId: String!): AttachmentEntity!
   removeAttachment(id: String!, boardId: String!): AttachmentEntity!
+  createReaction(createReactionToCommentInput: CreateReactionToCommentInput!, boardId: String!): ReactionToComment!
 }
 
 input SignInInput {
@@ -448,4 +460,9 @@ input UpdateChecklistItemInput {
 input UpdateAttachmentInput {
   filename: String
   id: String!
+}
+
+input CreateReactionToCommentInput {
+  emoji: String!
+  commentId: String!
 }

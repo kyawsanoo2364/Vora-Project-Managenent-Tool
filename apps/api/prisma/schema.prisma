@@ -25,6 +25,7 @@ model user {
   starredBoards    starredBoard[]
   createdInvites   inviteLink[]
   cards            card[]
+  reactions reactionToComment[]
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
 }
@@ -143,8 +144,19 @@ model comment {
   cardId    String
   card      card           @relation(fields: [cardId], references: [id], onDelete: Cascade)
   replies   replyComment[]
+  reactions reactionToComment[]
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+}
+
+model reactionToComment{
+  id String @id @default(uuid())
+  emoji String
+  userId String
+  user user @relation(fields: [userId],references: [id])
+  commentId String
+  comment comment @relation(fields: [commentId],references: [id])
+  createdAt DateTime @default(now())
 }
 
 model replyComment {
