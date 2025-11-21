@@ -131,6 +131,13 @@ export interface CommentType {
   id: string;
   content: string;
   user: UserType;
+  reactions: ReactionType[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ReactionType {
+  emoji: string;
+  count: number;
+  reactedByUser: boolean;
 }

@@ -770,6 +770,12 @@ export const GET_ALL_COMMENTS = gql`
           lastName
           avatar
         }
+        reactions {
+          emoji
+          count
+
+          reactedByUser
+        }
       }
       nextCursor
     }
@@ -805,6 +811,21 @@ export const UPDATE_COMMENT = gql`
 export const REMOVE_COMMENT = gql`
   mutation removeComment($id: String!, $boardId: String!) {
     removeComment(id: $id, boardId: $boardId) {
+      id
+    }
+  }
+`;
+
+export const REACTION_TO_COMMENT = gql`
+  mutation createReaction(
+    $emoji: String!
+    $commentId: String!
+    $boardId: String!
+  ) {
+    createReaction(
+      createReactionToCommentInput: { emoji: $emoji, commentId: $commentId }
+      boardId: $boardId
+    ) {
       id
     }
   }

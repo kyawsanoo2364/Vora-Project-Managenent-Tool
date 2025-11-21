@@ -8,12 +8,12 @@ datasource db {
 }
 
 model user {
-  id               String            @id @default(uuid())
-  username         String            @unique
+  id               String              @id @default(uuid())
+  username         String              @unique
   firstName        String
   lastName         String
   avatar           String?
-  email            String            @unique
+  email            String              @unique
   password         String
   uploadedFiles    attachment[]
   workspaceMembers workspaceMember[]
@@ -25,9 +25,9 @@ model user {
   starredBoards    starredBoard[]
   createdInvites   inviteLink[]
   cards            card[]
-  reactions reactionToComment[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  reactions        reactionToComment[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 }
 
 enum Role {
@@ -137,25 +137,25 @@ model card {
 }
 
 model comment {
-  id        String         @id @default(uuid())
+  id        String              @id @default(uuid())
   content   String
   userId    String
-  user      user           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      user                @relation(fields: [userId], references: [id], onDelete: Cascade)
   cardId    String
-  card      card           @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  card      card                @relation(fields: [cardId], references: [id], onDelete: Cascade)
   replies   replyComment[]
   reactions reactionToComment[]
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
 }
 
-model reactionToComment{
-  id String @id @default(uuid())
-  emoji String
-  userId String
-  user user @relation(fields: [userId],references: [id])
+model reactionToComment {
+  id        String   @id @default(uuid())
+  emoji     String
+  userId    String
+  user      user     @relation(fields: [userId], references: [id])
   commentId String
-  comment comment @relation(fields: [commentId],references: [id])
+  comment   comment  @relation(fields: [commentId], references: [id])
   createdAt DateTime @default(now())
 }
 

@@ -4,5 +4,6 @@ import { ReactionToCommentResolver } from './reaction-to-comment.resolver';
 
 @Module({
   providers: [ReactionToCommentResolver, ReactionToCommentService],
+  exports: [ReactionToCommentService],
 })
 export class ReactionToCommentModule {}

@@ -9,6 +9,7 @@ import { Button } from "../ui/button";
 import {
   useInfiniteQuery,
   useMutation,
+  UseMutationResult,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
 import {
   GET_ALL_ACTIVITIES_BY_CARD_ID,
   GET_ALL_COMMENTS,
+  REACTION_TO_COMMENT,
   REMOVE_COMMENT,
   UPDATE_COMMENT,
 } from "@/libs/utils/queryStringGraphql";
@@ -31,6 +33,7 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "../modern-ui/popover";
+import ReactionItem from "./reactionItem";
 
 const CommentsActivitiesSection = ({
   cardId,
@@ -39,6 +42,7 @@ const CommentsActivitiesSection = ({
   cardId: string;
   boardId: string;
 }) => {
+  const queryClient = useQueryClient();
   const {
     data: comments,
     hasNextPage,
@@ -59,6 +63,23 @@ const CommentsActivitiesSection = ({
     staleTime: 1000 * 60 * 2,
   });
 
+  const reactionToCommentMutation = useMutation({
+    mutationFn: async ({
+      commentId,
+      emoji,
+    }: {
+      commentId: string;
+      emoji: string;
+    }) =>
+      await fetchWithAuth(REACTION_TO_COMMENT, { commentId, emoji, boardId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["comments", cardId] });
+    },
+    onError: (err) => {
+      console.log(err);
+    },
+  });
+
   const activitiesQuery = useQuery({
     queryKey: ["activities", cardId],
     queryFn: async () =>
@@ -77,6 +98,7 @@ const CommentsActivitiesSection = ({
             data={comment}
             boardId={boardId}
             cardId={cardId}
+            reactionMutation={reactionToCommentMutation}
           />
         ))}
 
@@ -94,10 +116,20 @@ const CommentItem = ({
   data,
   boardId,
   cardId,
+  reactionMutation,
 }: {
   data: CommentType;
   boardId: string;
   cardId: string;
+  reactionMutation: UseMutationResult<
+    any,
+    Error,
+    {
+      commentId: string;
+      emoji: string;
+    },
+    unknown
+  >;
 }) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -152,6 +184,10 @@ const CommentItem = ({
     updateCommentMutation.mutate({ content });
   };
 
+  const onReaction = (emoji: string) => {
+    reactionMutation.mutate({ commentId: data.id, emoji });
+  };
+
   return (
     <div className="flex flex-col">
       <div className="flex flex-row gap-2">
@@ -203,6 +239,17 @@ const CommentItem = ({
               )}
             </div>
           )}
+          <div className="flex items-center gap-1 flex-wrap">
+            {data.reactions?.map((r) => (
+              <ReactionItem
+                key={r.emoji}
+                emoji={r.emoji}
+                count={r.count}
+                isActive={r.reactedByUser}
+                onClick={() => onReaction(r.emoji)}
+              />
+            ))}
+          </div>
         </div>
       </div>
       {!isEdit && (

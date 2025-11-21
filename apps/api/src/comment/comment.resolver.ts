@@ -19,7 +19,7 @@ export class CommentResolver {
   constructor(private readonly commentService: CommentService) {}
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
-  @BoardRole('ADMIN', 'MEMBER')
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
   @Mutation(() => Comment)
   createComment(
     @Args('createCommentInput') createCommentInput: CreateCommentInput,
@@ -31,7 +31,7 @@ export class CommentResolver {
   }
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
-  @BoardRole('ADMIN', 'MEMBER')
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
   @Mutation(() => ReplyComment)
   createReplyComment(
     @Args('createReplyCommentInput')
@@ -54,8 +54,10 @@ export class CommentResolver {
     @Args('cardId') cardId: string,
     @Args('boardId') boardId: string,
     @Args() paginationArgs: PaginationArgs,
+    @Context() context: any,
   ) {
-    return this.commentService.findAll(cardId, boardId, paginationArgs);
+    const userId = context.req.user.id;
+    return this.commentService.findAll(cardId, boardId, paginationArgs, userId);
   }
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
@@ -74,7 +76,7 @@ export class CommentResolver {
   }
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
-  @BoardRole('ADMIN', 'MEMBER')
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
   @Mutation(() => Comment)
   updateComment(
     @Args('updateCommentInput') updateCommentInput: UpdateCommentInput,
@@ -91,7 +93,7 @@ export class CommentResolver {
   }
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
-  @BoardRole('ADMIN', 'MEMBER')
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
   @Mutation(() => Comment)
   updateReplyComment(
     @Args('updateReplyCommentInput')
@@ -109,7 +111,7 @@ export class CommentResolver {
   }
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
-  @BoardRole('ADMIN', 'MEMBER')
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
   @Mutation(() => Comment)
   removeComment(
     @Args('id') id: string,
@@ -121,7 +123,7 @@ export class CommentResolver {
   }
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
-  @BoardRole('ADMIN', 'MEMBER')
+  @BoardRole('ADMIN', 'MEMBER', 'VIEWER')
   @Mutation(() => ReplyComment)
   removeReplyComment(
     @Args('id') id: string,

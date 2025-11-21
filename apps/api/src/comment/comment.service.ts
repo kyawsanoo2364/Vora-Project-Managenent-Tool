@@ -12,10 +12,14 @@ import { PaginationArgs } from 'src/common/pagination/pagination.args';
 import { paginateQuery } from 'src/common/pagination/pagination.helper';
 import { Comment } from './entities/comment.entity';
 import { ReplyComment } from './entities/reply-comment.entity';
+import { ReactionToCommentService } from 'src/reaction-to-comment/reaction-to-comment.service';
 
 @Injectable()
 export class CommentService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reactionToCommentService: ReactionToCommentService,
+  ) {}
 
   async create(
     createCommentInput: CreateCommentInput,
@@ -78,6 +82,7 @@ export class CommentService {
     cardId: string,
     boardId: string,
     paginationArgs: PaginationArgs,
+    userId: string,
   ) {
     const card = await this.prisma.card.findFirst({
       where: {
@@ -100,11 +105,26 @@ export class CommentService {
         },
         include: {
           user: true,
+          reactions: {
+            include: {
+              user: true,
+            },
+          },
         },
         orderBy: {
           createdAt: 'desc',
         },
       },
+    );
+
+    data.items = await Promise.all(
+      data.items.map(async (i) => {
+        const reactions = await this.reactionToCommentService.findAll(
+          i.id,
+          userId,
+        );
+        return { ...i, reactions } as any;
+      }),
     );
 
     return data;
