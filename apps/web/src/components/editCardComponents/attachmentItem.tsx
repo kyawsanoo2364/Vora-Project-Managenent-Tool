@@ -28,6 +28,7 @@ import {
   UPDATE_ATTACHMENT_IN_CARD,
 } from "@/libs/utils/queryStringGraphql";
 import toast from "react-hot-toast";
+import AttachmentFileViewDialog from "./attachment-file-view-dialog";
 
 interface Props {
   data: AttachmentFileType;
@@ -81,27 +82,32 @@ const AttachmentItem = ({ data, boardId, cardId }: Props) => {
 
   return (
     <div className="flex items-center justify-between w-full">
-      <div className="flex items-center gap-2">
-        <Suspense fallback={<FileIcon />}>
-          <img
-            src={data.media.url}
-            alt={data.media.filename}
-            className="size-8 object-contain"
-          />
-        </Suspense>
+      <AttachmentFileViewDialog
+        trigger={
+          <div className="flex items-center gap-2 cursor-pointer">
+            <Suspense fallback={<FileIcon />}>
+              <img
+                src={data.media.url}
+                alt={data.media.filename}
+                className="size-8 object-contain"
+              />
+            </Suspense>
 
-        <div className="flex flex-col ">
-          <h4 className="max-w-[400px] truncate text-sm">
-            {data.media.filename}
-            {data.media.type !== "unknown"
-              ? `.${data.media.type.split("/")[1]}`
-              : ""}
-          </h4>
-          <span className="text-[12px] text-gray-400">
-            {formatDistanceToNow(new Date(parseInt(data.createdAt)))}
-          </span>
-        </div>
-      </div>
+            <div className="flex flex-col ">
+              <h4 className="max-w-[400px] truncate text-sm">
+                {data.media.filename}
+                {data.media.type !== "unknown"
+                  ? `.${data.media.type.split("/")[1]}`
+                  : ""}
+              </h4>
+              <span className="text-[12px] text-gray-400">
+                {formatDistanceToNow(new Date(parseInt(data.createdAt)))}
+              </span>
+            </div>
+          </div>
+        }
+        data={data}
+      />
       <div className="flex items-center gap-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

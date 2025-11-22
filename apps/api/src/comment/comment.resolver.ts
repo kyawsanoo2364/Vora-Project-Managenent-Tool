@@ -119,6 +119,7 @@ export class CommentResolver {
     @Context() context: any,
   ) {
     const userId = context.req.user.id;
+
     return this.commentService.removeComment(id, userId, boardId);
   }
 

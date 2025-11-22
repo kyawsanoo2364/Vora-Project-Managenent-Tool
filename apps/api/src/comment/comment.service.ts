@@ -265,7 +265,7 @@ export class CommentService {
     if (!boardMember)
       throw new UnauthorizedException('You are not a member of this board.');
 
-    if (comment.userId !== userId && boardMember.role !== 'ADMIN')
+    if (comment.userId !== userId)
       throw new ForbiddenException(
         'You do not have permission to delete this comment.',
       );
