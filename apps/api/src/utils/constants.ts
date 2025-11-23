@@ -4,3 +4,5 @@ export const LIST_DEFAULT_DATA = [
   'In Review',
   'Completed',
 ];
+
+export const CLOUDINARY = 'Cloudinary';

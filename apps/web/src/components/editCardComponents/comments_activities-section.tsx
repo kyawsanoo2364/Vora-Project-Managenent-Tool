@@ -73,6 +73,9 @@ const CommentsActivitiesSection = ({
     onError: (err) => {
       console.log(err);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["comments", cardId] });
+    },
   });
 
   const activitiesQuery = useQuery({

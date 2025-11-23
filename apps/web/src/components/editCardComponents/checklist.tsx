@@ -52,6 +52,8 @@ const CheckList = ({
   const [checklistTitle, setChecklistTitle] = useState<string>(title);
   const checklistTitleDebounced = useDebounce(checklistTitle, 300);
   const [itemName, setItemName] = useState("");
+  const [progress, setProgress] = useState(0);
+  const [_items, set_items] = useState(items);
   {
     /** just show in popover. no take to real database*/
   }
@@ -147,6 +149,18 @@ const CheckList = ({
     setSelectedChecklistItemMembers([]);
   };
 
+  const calculateProgressBar = () => {
+    const itemCount = _items.length;
+    const markedCount = _items.filter((i) => i.isCompleted).length;
+    setProgress(Math.ceil((markedCount / itemCount) * 100));
+  };
+
+  useEffect(() => {
+    if (_items.length > 0) {
+      calculateProgressBar();
+    }
+  }, [_items]);
+
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between ">
@@ -178,16 +192,21 @@ const CheckList = ({
         </Button>
       </div>
       <div className="flex flex-col">
-        <span className="text-sm">0%</span>
-        <Progress value={0} />
+        <span className="text-sm">{progress}%</span>
+        <Progress value={progress} />
       </div>
       <div className="ml-4 flex flex-col gap-3">
-        {items?.map((item, i) => (
+        {_items?.map((item, i) => (
           <ChecklistItem
             key={item.id}
             data={item}
             boardId={boardId}
             cardId={cardId}
+            onMarkClick={({ id, isCompleted }) => {
+              set_items((prev) =>
+                prev.map((i) => (i.id === id ? { ...i, isCompleted } : i)),
+              );
+            }}
           />
         ))}
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Command,
   CommandEmpty,
@@ -36,6 +36,7 @@ const MemberContent = ({
   cardId,
 }: MemberContentProps) => {
   const queryClient = useQueryClient();
+  const [toastId, setToastId] = useState("");
   const getAllBoardMember = useQuery({
     queryKey: ["card_board_member", boardId],
     queryFn: async () =>
@@ -54,9 +55,10 @@ const MemberContent = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["card", cardId] });
       queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
+      toast.dismiss(toastId);
     },
     onError: (err) => {
-      toast.error(err.message || "Something went wrong!");
+      toast.error(err.message || "Something went wrong!", { id: toastId });
     },
   });
 
@@ -70,14 +72,16 @@ const MemberContent = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["card", cardId] });
       queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
+      toast.dismiss(toastId);
     },
     onError: (err) => {
-      toast.error(err.message || "Something went wrong!");
+      toast.error(err.message || "Something went wrong!", { id: toastId });
     },
   });
 
   const toggleAssignAndRemoveMember = (id: string) => {
     const isAssigned = Boolean(assignedMembers.find((m) => m.id === id));
+    setToastId(toast.loading("Processing..."));
     if (isAssigned) {
       removeAssignMember.mutate({ id });
     } else {

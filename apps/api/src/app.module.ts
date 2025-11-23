@@ -23,6 +23,7 @@ import { CommentModule } from './comment/comment.module';
 import { ChecklistItemModule } from './checklist-item/checklist-item.module';
 import { AttachmentModule } from './attachment/attachment.module';
 import { ReactionToCommentModule } from './reaction-to-comment/reaction-to-comment.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ReactionToCommentModule } from './reaction-to-comment/reaction-to-comme
     ChecklistItemModule,
     AttachmentModule,
     ReactionToCommentModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

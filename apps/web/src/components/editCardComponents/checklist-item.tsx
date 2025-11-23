@@ -29,9 +29,16 @@ interface Props {
   data: ChecklistItemType;
   boardId: string;
   cardId: string;
+  onMarkClick?: ({
+    id,
+    isCompleted,
+  }: {
+    id: string;
+    isCompleted: boolean;
+  }) => void;
 }
 
-const ChecklistItem = ({ data, boardId, cardId }: Props) => {
+const ChecklistItem = ({ data, boardId, cardId, onMarkClick }: Props) => {
   const queryClient = useQueryClient();
   const [isEdit, setIsEdit] = useState(false);
   const [content, setContent] = useState(data.content);
@@ -75,7 +82,6 @@ const ChecklistItem = ({ data, boardId, cardId }: Props) => {
         isCompleted,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
       setIsEdit(false);
       queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
     },
@@ -90,7 +96,8 @@ const ChecklistItem = ({ data, boardId, cardId }: Props) => {
 
   const onCheckedMark = (value: boolean) => {
     setChecked(value);
-    updateItem.mutate({ isCompleted: value });
+    onMarkClick?.({ id: data.id, isCompleted: value });
+    updateItem.mutateAsync({ isCompleted: value });
   };
 
   const updateDueDate = (date: Date | null) => {

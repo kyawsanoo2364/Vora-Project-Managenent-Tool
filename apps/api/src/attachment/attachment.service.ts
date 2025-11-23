@@ -2,10 +2,14 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { UpdateAttachmentInput } from './dto/update-attachment.input';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { MediaService } from 'src/media/media.service';
 
 @Injectable()
 export class AttachmentService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly media: MediaService,
+  ) {}
 
   findAll() {
     return `This action returns all attachment`;
@@ -80,11 +84,7 @@ export class AttachmentService {
       },
     });
 
-    await this.prisma.media.delete({
-      where: {
-        id: attachment.mediaId,
-      },
-    });
+    await this.media.removeMedia(deletedAttachment.mediaId);
 
     await this.prisma.activity.create({
       data: {

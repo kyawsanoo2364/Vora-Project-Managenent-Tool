@@ -1,53 +1,63 @@
-import { Injectable, RequestTimeoutException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  RequestTimeoutException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { File } from '@web-std/file';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UTApi } from 'uploadthing/server';
 
 @Injectable()
 export class MediaService {
-  private utapi: UTApi;
-
   constructor(
     private configService: ConfigService,
     private readonly prisma: PrismaService,
-  ) {
-    this.utapi = new UTApi({
-      token: configService.get<string>('UPLOADTHING_TOKEN'),
-      logLevel: 'All',
-    });
-  }
+    private readonly cloudinary: CloudinaryService,
+  ) {}
 
   async uploadFile(file: Express.Multer.File) {
-    const unit8 = new Uint8Array(file.buffer);
-    const nodeFile = new File([unit8], file.originalname, {
-      type: file.mimetype,
-    });
-    try {
-      const res = await this.utapi.uploadFiles([nodeFile]);
+    const data = await this.cloudinary.uploadFile(file);
 
-      if (!res || res.length <= 0 || !res[0].data) {
-        throw new Error('Uploadthing returned empty response');
+    const media = await this.prisma.media.create({
+      data: {
+        fileId: data.public_id,
+        url: data.secure_url,
+        filename: data.original_filename,
+        type: data.type,
+      },
+    });
+    return {
+      success: true,
+      message: 'Uploaded file successfully!',
+      data: {
+        fileId: media.id,
+        url: media.url,
+        name: media.filename,
+        type: media.type,
+      },
+    };
+  }
+  catch(error) {
+    throw new RequestTimeoutException(error.message || 'Upload Failed');
+  }
+
+  async removeMedia(mediaId: string) {
+    const media = await this.prisma.media.findUnique({
+      where: {
+        id: mediaId,
+      },
+    });
+    if (!media) throw new BadRequestException('Invalid Media');
+    if (media.fileId) {
+      try {
+        await this.cloudinary.removeFile(media.fileId);
+      } catch (error) {
+        throw new BadRequestException(error);
       }
-      const media = await this.prisma.media.create({
-        data: {
-          url: res[0].data.url,
-          filename: res[0].data.name,
-          type: res[0].data.type,
-        },
-      });
-      return {
-        success: true,
-        message: 'Uploaded file successfully!',
-        data: {
-          fileId: media.id,
-          url: media.url,
-          name: media.filename,
-          type: media.type,
-        },
-      };
-    } catch (error) {
-      throw new RequestTimeoutException(error.message || 'Upload Failed');
     }
+    await this.prisma.media.delete({ where: { id: mediaId } });
+    return { success: true, message: 'Successfully removed media file!' };
   }
 }

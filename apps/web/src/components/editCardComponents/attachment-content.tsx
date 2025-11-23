@@ -63,7 +63,9 @@ const AttachmentContent = ({
     },
     onSuccess: (data) => {
       if (data?.statusCode > 200) {
-        toast.error(data?.error, { id: toastId as string });
+        toast.error(data?.error || "Something went wrong!", {
+          id: toastId as string,
+        });
         return;
       }
       toast.success("Uploaded file successfully.", { id: toastId as string });
@@ -77,6 +79,7 @@ const AttachmentContent = ({
   useEffect(() => {
     if (file) {
       setToastId(toast.loading("Uploading..."));
+
       addAttachmentFile.mutate({ file });
     }
   }, [file]);

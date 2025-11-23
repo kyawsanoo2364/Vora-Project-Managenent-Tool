@@ -153,9 +153,9 @@ model reactionToComment {
   id        String   @id @default(uuid())
   emoji     String
   userId    String
-  user      user     @relation(fields: [userId], references: [id],onDelete: Cascade)
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   commentId String
-  comment   comment  @relation(fields: [commentId], references: [id],onDelete: Cascade)
+  comment   comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
 
@@ -219,6 +219,7 @@ model activity {
 
 model media {
   id         String      @id @default(uuid())
+  fileId     String?
   url        String
   filename   String
   type       String
