@@ -247,6 +247,9 @@ export class CardService {
           },
           include: {
             items: {
+              orderBy: {
+                orderIndex: 'asc',
+              },
               include: {
                 assignMembers: {
                   include: {

@@ -32,6 +32,7 @@ import {
   CREATE_CHECKLIST_ITEM,
   DELETE_CHECKLIST,
   UPDATE_CHECKLIST,
+  UPDATE_CHECKLIST_ITEM_POS,
 } from "@/libs/utils/queryStringGraphql";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/libs/hooks/useDebounce";
@@ -193,6 +194,26 @@ const CheckList = ({
     setSelectedChecklistItemMembers([]);
   };
 
+  const updateChecklistItemPos = useMutation({
+    mutationFn: async ({
+      itemId,
+      orderIndex,
+    }: {
+      itemId: string;
+      orderIndex: number;
+    }) =>
+      await fetchWithAuth(UPDATE_CHECKLIST_ITEM_POS, {
+        itemId,
+        orderIndex,
+        checklistId: id,
+        boardId,
+      }),
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+      console.log(err);
+    },
+  });
+
   const calculateProgressBar = () => {
     const itemCount = _items.length;
     const markedCount = _items.filter((i) => i.isCompleted).length;
@@ -245,6 +266,11 @@ const CheckList = ({
       const newPos = getTaskPos(over?.id, _items);
 
       return arrayMove(_items, orgPos, newPos);
+    });
+
+    updateChecklistItemPos.mutate({
+      itemId: active.id as string,
+      orderIndex: getTaskPos(over?.id, _items),
     });
   };
 

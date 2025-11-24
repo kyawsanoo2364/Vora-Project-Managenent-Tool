@@ -108,6 +108,7 @@ const ChecklistItem = ({ data, boardId, cardId, onMarkClick }: Props) => {
     onSuccess: () => {
       setIsEdit(false);
       queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
     },
     onError: (err) => {
       toast.error(err.message || "Something went wrong!");
