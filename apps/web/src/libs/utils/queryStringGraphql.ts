@@ -551,6 +551,22 @@ export const UPDATE_CHECKLIST = gql`
   }
 `;
 
+export const UPDATE_CHECKLIST_POS = gql`
+  mutation updateChecklistPosition(
+    $checklistId: String!
+    $orderIndex: Int!
+    $boardId: String!
+    $cardId: String!
+  ) {
+    updateChecklistPosition(
+      checklistId: $checklistId
+      orderIndex: $orderIndex
+      boardId: $boardId
+      cardId: $cardId
+    )
+  }
+`;
+
 export const DELETE_CHECKLIST = gql`
   mutation removeChecklist($id: String!, $boardId: String!) {
     removeChecklist(id: $id, boardId: $boardId)

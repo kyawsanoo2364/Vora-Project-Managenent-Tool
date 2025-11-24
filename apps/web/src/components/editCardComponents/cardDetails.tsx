@@ -35,12 +35,31 @@ import { Card } from "@/libs/types";
 import { ScrollArea } from "../ui/scroll-area";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
-import { UPDATE_CARD } from "@/libs/utils/queryStringGraphql";
+import {
+  UPDATE_CARD,
+  UPDATE_CHECKLIST_POS,
+} from "@/libs/utils/queryStringGraphql";
 import toast from "react-hot-toast";
 import { useDebounce } from "@/libs/hooks/useDebounce";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { initialAvatarText } from "@/libs/utils/helpers";
+import { getTaskPos, initialAvatarText } from "@/libs/utils/helpers";
 import Attachment from "./attachment";
+import {
+  closestCorners,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 type UpdateCardArgsType = {
   id: string;
@@ -67,6 +86,13 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
   useClickAway(titleRef, () => {
     if (isOpenTitleInput) setIsOpenTitleInput(false);
   });
+  const [checklists, setChecklists] = useState(data.checklists);
+
+  useEffect(() => {
+    if (data.checklists?.length > 0) {
+      setChecklists(data.checklists);
+    }
+  }, [data.checklists]);
 
   const featureItems = [
     {
@@ -160,9 +186,52 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
     setShowEditor(false);
   };
 
+  const updateChecklistPos = useMutation({
+    mutationFn: async ({
+      checklistId,
+      orderIndex,
+    }: {
+      checklistId: string;
+      orderIndex: number;
+    }) =>
+      await fetchWithAuth(UPDATE_CHECKLIST_POS, {
+        cardId: data.id,
+        boardId,
+        checklistId,
+        orderIndex,
+      }),
+    onError: (err) => {
+      console.log(err);
+    },
+  });
+
   const onChangePriority = (value: string) => {
     setPriority(value);
     updateCardMutation.mutate({ id: data.id, priority: value });
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleChecklistOnDragEnd = async (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (active.id === over?.id) return;
+
+    setChecklists((checklist) => {
+      const orgPos = getTaskPos(active.id, checklists);
+      const newPos = getTaskPos(over?.id, checklists);
+      return arrayMove(checklists, orgPos, newPos);
+    });
+
+    await updateChecklistPos.mutateAsync({
+      checklistId: active.id as string,
+      orderIndex: getTaskPos(over?.id, checklists),
+    });
   };
 
   return (
@@ -350,18 +419,31 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
       )}
 
       {/** Checklist */}
-      <div className="flex flex-col gap-4 mt-2">
-        {data.checklists?.map((checklist, i) => (
-          <CheckList
-            title={checklist.title}
-            id={checklist.id}
-            key={checklist.id}
-            items={checklist.items}
-            boardId={boardId}
-            cardId={data.id}
-          />
-        ))}
-      </div>
+      <DndContext
+        collisionDetection={closestCorners}
+        sensors={sensors}
+        onDragEnd={handleChecklistOnDragEnd}
+      >
+        <div className="flex flex-col gap-4 mt-2">
+          {data.checklists?.length > 0 && (
+            <SortableContext
+              items={checklists.map((c) => c.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {checklists?.map((checklist, i) => (
+                <CheckList
+                  title={checklist.title}
+                  id={checklist.id}
+                  key={checklist.id}
+                  items={checklist.items}
+                  boardId={boardId}
+                  cardId={data.id}
+                />
+              ))}
+            </SortableContext>
+          )}
+        </div>
+      </DndContext>
     </div>
   );
 };

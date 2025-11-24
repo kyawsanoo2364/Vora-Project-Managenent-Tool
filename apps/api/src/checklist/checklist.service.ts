@@ -195,6 +195,41 @@ export class ChecklistService {
     return updatedChecklist;
   }
 
+  async updateChecklistPos(id: string, orderIndex: number, cardId: string) {
+    const checklists = await this.prisma.checklist.findMany({
+      where: {
+        cardId,
+      },
+      orderBy: {
+        orderIndex: 'asc',
+      },
+    });
+
+    const movedItem = checklists.find((c) => c.id === id);
+    if (!movedItem) {
+      throw new BadRequestException('Invalid Checklist');
+    }
+    const filteredChecklists = checklists.filter((c) => c.id !== id);
+    // Bound check (optional but recommended)
+    if (orderIndex < 0 || orderIndex > filteredChecklists.length) {
+      throw new BadRequestException('Invalid order index');
+    }
+    filteredChecklists.splice(orderIndex, 0, movedItem);
+
+    const updates = filteredChecklists.map((checklist, i) => {
+      return this.prisma.checklist.update({
+        where: { id: checklist.id },
+        data: {
+          orderIndex: i,
+        },
+      });
+    });
+
+    await this.prisma.$transaction(updates);
+
+    return 'Successfully checklist position updated.';
+  }
+
   async remove(id: string, userId: string, boardId: string) {
     const existsChecklist = await this.prisma.checklist.findUnique({
       where: { id },

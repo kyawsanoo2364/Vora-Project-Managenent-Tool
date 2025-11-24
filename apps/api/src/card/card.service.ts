@@ -243,7 +243,7 @@ export class CardService {
       include: {
         checklists: {
           orderBy: {
-            createdAt: 'desc',
+            orderIndex: 'asc',
           },
           include: {
             items: {

@@ -214,6 +214,36 @@ export class ChecklistItemService {
     return updatedItem;
   }
 
+  async updateItemPos(itemId: string, checklistId: string, orderIndex: number) {
+    const checklistItems = await this.prisma.checklistItem.findMany({
+      where: {
+        checklistId,
+      },
+      orderBy: {
+        orderIndex: 'asc',
+      },
+    });
+    const movedItem = checklistItems.find((i) => i.id === itemId);
+    if (!movedItem) throw new BadRequestException('Invalid Checklist item.');
+    const filtered = checklistItems.filter((i) => i.id !== itemId);
+    if (orderIndex < 0 || orderIndex > checklistItems.length) {
+      throw new BadRequestException('Invalid Order index');
+    }
+    filtered.splice(orderIndex, 0, movedItem);
+
+    const updates = filtered.map((item, i) =>
+      this.prisma.checklistItem.update({
+        where: { id: item.id },
+        data: {
+          orderIndex: i,
+        },
+      }),
+    );
+
+    await this.prisma.$transaction(updates);
+    return 'Successfully checklist item position updated!';
+  }
+
   async remove(id: string, boardId: string) {
     const existingItem = await this.prisma.checklistItem.findUnique({
       where: { id },

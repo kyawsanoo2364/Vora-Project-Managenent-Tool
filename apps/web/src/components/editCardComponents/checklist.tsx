@@ -1,12 +1,20 @@
 "use client";
 
-import React, { FormEvent, useEffect, useRef, useState } from "react";
+import React, {
+  FormEvent,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { Input } from "../ui/input";
 import { useClickAway } from "@/hooks/use-click-away";
 import {
   CheckSquare2Icon,
   ClockIcon,
+  GripHorizontalIcon,
+  GripIcon,
   Trash2Icon,
   UserPlusIcon,
 } from "lucide-react";
@@ -31,6 +39,25 @@ import { Popover, PopoverContent, PopoverTrigger } from "../modern-ui/popover";
 import AssignMemberChecklistItemContent from "./assignMember-checklist-item-content";
 import AvatarGroup from "../avatar-group";
 import DueDateContent from "./dueDate-content";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { cn, getTaskPos } from "@/libs/utils/helpers";
+import {
+  closestCorners,
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 
 const CheckList = ({
   id,
@@ -66,6 +93,23 @@ const CheckList = ({
   );
   const [selectedChecklistItemMembers, setSelectedChecklistItemMembers] =
     useState<AssignMember[] | []>([]);
+
+  const {
+    listeners,
+    attributes,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id,
+    transition: {
+      duration: 150, // milliseconds
+      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+    },
+  });
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
 
   useClickAway(titleRef, () => {
     setIsEditTitle(false);
@@ -161,10 +205,74 @@ const CheckList = ({
     }
   }, [_items]);
 
+  useEffect(() => {
+    if (items) {
+      set_items(items);
+    }
+  }, [items]);
+
+  useLayoutEffect(() => {
+    if (cardRef.current && !isDragging) {
+      setHeight(cardRef.current.offsetHeight);
+    }
+  }, [isDragging]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const style = {
+    transform: CSS.Transform.toString(
+      transform ? { ...transform, scaleY: 1 } : null,
+    ),
+    transition,
+    height: isDragging && height ? `${height}px` : undefined,
+    zIndex: isDragging ? 50 : "auto",
+    position: isDragging ? ("relative" as const) : undefined,
+    willChange: "transform",
+  };
+
+  const handleChecklistItemDragEnd = (e: DragEndEvent) => {
+    const { over, active } = e;
+    if (active.id === over?.id) return;
+
+    set_items((prev) => {
+      const orgPos = getTaskPos(active.id, _items);
+      const newPos = getTaskPos(over?.id, _items);
+
+      return arrayMove(_items, orgPos, newPos);
+    });
+  };
+
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div
+      className={cn(
+        "flex flex-col gap-4 p-4  rounded-md",
+        isDragging && "bg-gray-500/10",
+      )}
+      ref={(e) => {
+        cardRef.current = e;
+        setNodeRef(e);
+      }}
+      style={style}
+    >
       <div className="flex items-center justify-between ">
-        <div className="flex flex-row gap-4 items-center" ref={titleRef}>
+        <div
+          className="flex flex-row gap-4 flex-1 items-center"
+          ref={titleRef}
+          {...attributes}
+        >
+          <GripIcon
+            className={cn(
+              "text-slate-500 cursor-grab select-none border-none",
+              isDragging && "cursor-grabbing",
+            )}
+            {...listeners}
+          />
           <CheckSquare2Icon />
           {isEditTitle ? (
             <Input
@@ -191,25 +299,38 @@ const CheckList = ({
           {removeChecklist.isPending ? "Deleting..." : "Delete"}
         </Button>
       </div>
-      <div className="flex flex-col">
-        <span className="text-sm">{progress}%</span>
-        <Progress value={progress} />
-      </div>
-      <div className="ml-4 flex flex-col gap-3">
-        {_items?.map((item, i) => (
-          <ChecklistItem
-            key={item.id}
-            data={item}
-            boardId={boardId}
-            cardId={cardId}
-            onMarkClick={({ id, isCompleted }) => {
-              set_items((prev) =>
-                prev.map((i) => (i.id === id ? { ...i, isCompleted } : i)),
-              );
-            }}
-          />
-        ))}
-      </div>
+      {_items.length > 0 && (
+        <div className="flex flex-col">
+          <span className="text-sm">{progress}%</span>
+          <Progress value={progress} />
+        </div>
+      )}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragEnd={handleChecklistItemDragEnd}
+      >
+        <div className="ml-4 flex flex-col gap-3">
+          <SortableContext
+            items={_items.map((i) => i.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {_items?.map((item, i) => (
+              <ChecklistItem
+                key={item.id}
+                data={item}
+                boardId={boardId}
+                cardId={cardId}
+                onMarkClick={({ id, isCompleted }) => {
+                  set_items((prev) =>
+                    prev.map((i) => (i.id === id ? { ...i, isCompleted } : i)),
+                  );
+                }}
+              />
+            ))}
+          </SortableContext>
+        </div>
+      </DndContext>
       <div>
         {isOpenCreate ? (
           <form

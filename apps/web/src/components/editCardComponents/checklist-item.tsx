@@ -1,9 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Checkbox } from "../ui/checkbox";
 import { Button } from "../ui/button";
-import { ClockIcon, Trash2Icon, UserPlus2Icon } from "lucide-react";
+import {
+  ClockIcon,
+  GripVerticalIcon,
+  Trash2Icon,
+  UserPlus2Icon,
+} from "lucide-react";
 import { Input } from "../ui/input";
 import {
   AssignMember,
@@ -24,6 +29,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "../modern-ui/popover";
 import DueDateContent from "./dueDate-content";
 import AvatarGroup from "../avatar-group";
 import AssignMemberChecklistItemContent from "./assignMember-checklist-item-content";
+import { cn } from "@/libs/utils/helpers";
+import { CSS } from "@dnd-kit/utilities";
+import { useSortable } from "@dnd-kit/sortable";
 
 interface Props {
   data: ChecklistItemType;
@@ -48,6 +56,22 @@ const ChecklistItem = ({ data, boardId, cardId, onMarkClick }: Props) => {
   );
   const [selectedChecklistItemMembers, setSelectedChecklistItemMembers] =
     useState<AssignMember[]>(data?.assignMembers);
+  const {
+    listeners,
+    attributes,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: data.id,
+    transition: {
+      duration: 150, // milliseconds
+      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+    },
+  });
+  const itemRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number | null>(null);
 
   const removeChecklistItem = useMutation({
     mutationFn: async ({ id, boardId }: { id: string; boardId: string }) =>
@@ -134,9 +158,41 @@ const ChecklistItem = ({ data, boardId, cardId, onMarkClick }: Props) => {
     },
   });
 
+  useLayoutEffect(() => {
+    if (itemRef.current && !isDragging) {
+      setHeight(itemRef.current.offsetHeight);
+    }
+  }, [isDragging]);
+
+  const style = {
+    transform: CSS.Transform.toString(
+      transform ? { ...transform, scaleY: 1 } : null,
+    ),
+    transition,
+    height: isDragging && height ? `${height}px` : undefined,
+    zIndex: isDragging ? 50 : "auto",
+    position: isDragging ? ("relative" as const) : undefined,
+    willChange: "transform",
+  };
+
   return (
-    <div className="flex flex-col w-full gap-2">
+    <div
+      className="flex flex-col w-full gap-2"
+      ref={(e) => {
+        itemRef.current = e;
+        setNodeRef(e);
+      }}
+      style={style}
+      {...attributes}
+    >
       <div className="flex flex-row items-center gap-2">
+        <GripVerticalIcon
+          className={cn(
+            "text-slate-500 cursor-grab",
+            isDragging && "cursor-grabbing",
+          )}
+          {...listeners}
+        />
         <Checkbox
           checked={checked}
           onCheckedChange={(checked) => onCheckedMark(!!checked)}

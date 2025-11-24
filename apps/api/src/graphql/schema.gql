@@ -265,6 +265,7 @@ type Mutation {
   createChecklist(createChecklistInput: CreateChecklistInput!, boardId: String!): Checklist!
   duplicateChecklist(checklistId: String!, createChecklistInput: CreateChecklistInput!, boardId: String!): Checklist!
   updateChecklist(updateChecklistInput: UpdateChecklistInput!, boardId: String!): Checklist!
+  updateChecklistPosition(checklistId: String!, orderIndex: Int!, boardId: String!, cardId: String!): String!
   removeChecklist(id: String!, boardId: String!): String!
   createComment(createCommentInput: CreateCommentInput!, boardId: String!): Comment!
   createReplyComment(createReplyCommentInput: CreateReplyCommentInput!, boardId: String!): ReplyComment!
@@ -276,6 +277,7 @@ type Mutation {
   removeReaction(reactionId: String!, boardId: String!): ReactionToComment!
   createChecklistItem(createChecklistItemInput: CreateChecklistItemInput!, boardId: String!): ChecklistItem!
   updateChecklistItem(updateChecklistItemInput: UpdateChecklistItemInput!, boardId: String!): ChecklistItem!
+  updateChecklistItemPos(itemId: String!, checklistId: String!, orderIndex: Int!, boardId: String!): String!
   removeChecklistItem(id: String!, boardId: String!): String!
   removeAssignedMemberFromChecklistItem(id: String!, memberId: String!, boardId: String!): String!
   addAssignMemberInChecklistItem(id: String!, memberId: String!, boardId: String!): String!

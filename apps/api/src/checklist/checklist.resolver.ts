@@ -74,6 +74,22 @@ export class ChecklistResolver {
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
   @BoardRole('ADMIN', 'MEMBER')
   @Mutation(() => String)
+  updateChecklistPosition(
+    @Args('checklistId') checklistId: string,
+    @Args('orderIndex', { type: () => Int }) orderIndex: number,
+    @Args('boardId') boardId: string,
+    @Args('cardId') cardId: string,
+  ) {
+    return this.checklistService.updateChecklistPos(
+      checklistId,
+      orderIndex,
+      cardId,
+    );
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => String)
   removeChecklist(
     @Args('id') id: string,
     @Args('boardId') boardId: string,
