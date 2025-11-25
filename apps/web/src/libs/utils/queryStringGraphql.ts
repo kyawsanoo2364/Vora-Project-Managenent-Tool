@@ -503,6 +503,16 @@ export const GET_CARD_BY_ID = gql`
           avatar
         }
       }
+      cover {
+        id
+        mediaId
+        media {
+          url
+          filename
+          type
+        }
+        createdAt
+      }
       attachments {
         id
         userId

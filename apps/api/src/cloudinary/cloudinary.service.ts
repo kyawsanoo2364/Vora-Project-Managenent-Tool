@@ -21,7 +21,7 @@ export class CloudinaryService {
     try {
       await v2.uploader.destroy(fileId);
     } catch (error) {
-      throw new BadRequestException('Invalid file');
+      throw new BadRequestException(error);
     }
   }
 }

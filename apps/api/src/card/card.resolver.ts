@@ -91,6 +91,28 @@ export class CardResolver {
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)
   @BoardRole('ADMIN', 'MEMBER')
   @Mutation(() => String)
+  addCoverInCard(
+    @Args('cardId') cardId: string,
+    @Args('attachmentId') attachmentId: string,
+    @Args('boardId') boardId: string,
+  ) {
+    return this.cardService.addCover(cardId, attachmentId, boardId);
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => String)
+  removeCoverFromCard(
+    @Args('cardId') cardId: string,
+
+    @Args('boardId') boardId: string,
+  ) {
+    return this.cardService.removeCover(cardId, boardId);
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => String)
   removeAssignMemberInCard(
     @Args('assignMemberCardInput') assignMemberCardInput: AssignMemberCardInput,
     @Args('boardId') boardId: string,

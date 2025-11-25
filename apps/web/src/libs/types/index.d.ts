@@ -66,6 +66,14 @@ export interface Card {
   assignMembers: AssignMember[];
   attachments: AttachmentFileType[];
   checklists: Checklist[];
+  cover?: Cover;
+}
+
+export interface Cover {
+  id: string;
+  createdAt: string;
+  mediaId: string;
+  media: MediaType;
 }
 
 export interface AttachmentFileType {

@@ -25,7 +25,7 @@ export class MediaService {
         fileId: data.public_id,
         url: data.secure_url,
         filename: data.original_filename,
-        type: data.type,
+        type: data.resource_type,
       },
     });
     return {

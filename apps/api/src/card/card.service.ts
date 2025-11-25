@@ -241,6 +241,11 @@ export class CardService {
     const card = await this.prisma.card.findUnique({
       where: { id },
       include: {
+        cover: {
+          include: {
+            media: true,
+          },
+        },
         checklists: {
           orderBy: {
             orderIndex: 'asc',
@@ -343,6 +348,79 @@ export class CardService {
 
   remove(id: number) {
     return `This action removes a #${id} card`;
+  }
+
+  async addCover(cardId: string, attachmentId: string, boardId: string) {
+    const card = await this.prisma.card.findFirst({
+      where: {
+        id: cardId,
+        list: {
+          boardId,
+        },
+      },
+    });
+    if (!card) throw new BadRequestException('Invalid card or board');
+    const attachment = await this.prisma.attachment.findFirst({
+      where: {
+        id: attachmentId,
+        cardId,
+      },
+    });
+    if (!attachment) {
+      throw new BadRequestException('Invalid Attachment Media.');
+    }
+
+    if (card.coverId) {
+      await this.prisma.card.update({
+        where: {
+          id: card.id,
+        },
+        data: {
+          cover: {
+            disconnect: {
+              id: card.coverId,
+            },
+          },
+        },
+      });
+    }
+
+    await this.prisma.card.update({
+      where: {
+        id: card.id,
+      },
+      data: {
+        cover: {
+          connect: {
+            id: attachmentId,
+          },
+        },
+      },
+    });
+
+    return 'Successfully card cover added';
+  }
+
+  async removeCover(cardId: string, boardId: string) {
+    const card = await this.prisma.card.findFirst({
+      where: {
+        id: cardId,
+        list: {
+          boardId,
+        },
+      },
+    });
+    if (!card) throw new BadRequestException('Invalid card or board');
+    await this.prisma.card.update({
+      where: { id: card.id },
+      data: {
+        cover: {
+          disconnect: true,
+        },
+      },
+    });
+
+    return 'Successfully card cover removed!';
   }
 
   async addAttachmentFileFromURL(

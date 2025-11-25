@@ -138,6 +138,7 @@ type Card {
   description: String
   checklists: [Checklist!]!
   assignMembers: [BoardMember!]!
+  cover: AttachmentEntity
   attachments: [AttachmentEntity!]!
   orderIndex: Int!
   isCompleted: Boolean!
@@ -257,6 +258,8 @@ type Mutation {
   createCard(createCardInput: CreateCardInput!, boardId: String!): Card!
   updateCard(boardId: String!, updateCardInput: UpdateCardInput!): Card!
   addAssignMemberInCard(assignMemberCardInput: AssignMemberCardInput!, boardId: String!): String!
+  addCoverInCard(cardId: String!, attachmentId: String!, boardId: String!): String!
+  removeCoverFromCard(cardId: String!, boardId: String!): String!
   removeAssignMemberInCard(assignMemberCardInput: AssignMemberCardInput!, boardId: String!): String!
   addAttachmentFromURL(cardId: String!, url: String!, boardId: String!): AttachmentEntity!
   createActivity(createActivityInput: CreateActivityInput!): Activity!

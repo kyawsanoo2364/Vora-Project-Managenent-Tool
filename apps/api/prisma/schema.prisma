@@ -129,6 +129,8 @@ model card {
   comments      comment[]
   orderIndex    Int
   activities    activity[]
+  coverId       String?       @unique
+  cover         attachment?   @relation("CardCover", fields: [coverId], references: [id],onDelete: SetNull)
   userId        String
   user          user          @relation(fields: [userId], references: [id])
   isCompleted   Boolean       @default(false)
@@ -194,15 +196,15 @@ model checklist {
 }
 
 model attachment {
-  id         String @id @default(uuid())
-  mediaId    String @unique
-  media      media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  id         String   @id @default(uuid())
+  mediaId    String   @unique
+  media      media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
   userId     String
-  uploadedBy user   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  uploadedBy user     @relation(fields: [userId], references: [id], onDelete: Cascade)
   cardId     String
-  card       card   @relation(fields: [cardId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
+  card       card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  coverOf    card?    @relation("CardCover")
+  createdAt  DateTime @default(now())
 }
 
 model activity {

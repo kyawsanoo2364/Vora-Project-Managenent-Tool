@@ -34,6 +34,9 @@ export class Card {
   @Field(() => [BoardMember])
   assignMembers: BoardMember[];
 
+  @Field(() => AttachmentEntity, { nullable: true })
+  cover: AttachmentEntity;
+
   @Field(() => [AttachmentEntity])
   attachments: AttachmentEntity[];
 
