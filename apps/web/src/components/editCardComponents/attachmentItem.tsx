@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  DockIcon,
   DownloadIcon,
   EditIcon,
   EllipsisIcon,
@@ -24,7 +25,9 @@ import { Input } from "../ui/input";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
 import {
+  ADD_COVER_IN_CARD,
   REMOVE_ATTACHMENT,
+  REMOVE_COVER_FROM_CARD,
   UPDATE_ATTACHMENT_IN_CARD,
 } from "@/libs/utils/queryStringGraphql";
 import toast from "react-hot-toast";
@@ -34,9 +37,10 @@ interface Props {
   data: AttachmentFileType;
   boardId: string;
   cardId: string;
+  coverId?: string;
 }
 
-const AttachmentItem = ({ data, boardId, cardId }: Props) => {
+const AttachmentItem = ({ data, boardId, cardId, coverId }: Props) => {
   const queryClient = useQueryClient();
   const [isEdit, setIsEdit] = useState(false);
   const [fileName, setFileName] = useState(data.media.filename);
@@ -80,6 +84,32 @@ const AttachmentItem = ({ data, boardId, cardId }: Props) => {
     updateAttachment.mutate({ filename: fileName });
   };
 
+  const addCoverMutation = useMutation({
+    mutationFn: async ({ attachmentId }: { attachmentId: string }) =>
+      await fetchWithAuth(ADD_COVER_IN_CARD, { cardId, boardId, attachmentId }),
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!", { id: toastId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
+      toast.success("Successfully added cover.", { id: toastId });
+    },
+  });
+
+  const removeCoverMutation = useMutation({
+    mutationFn: async () =>
+      await fetchWithAuth(REMOVE_COVER_FROM_CARD, { cardId, boardId }),
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!", { id: toastId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["card", cardId] });
+      queryClient.invalidateQueries({ queryKey: ["activities", cardId] });
+      toast.success("Successfully removed cover", { id: toastId });
+    },
+  });
+
   return (
     <div className="flex items-center justify-between w-full">
       <AttachmentFileViewDialog
@@ -119,6 +149,26 @@ const AttachmentItem = ({ data, boardId, cardId }: Props) => {
             <DropdownMenuItem onSelect={() => setIsEdit(true)}>
               <EditIcon /> Edit
             </DropdownMenuItem>
+            {data.media.type.includes("image") &&
+              (coverId && coverId === data.id ? (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setToastId(toast.loading("Processing..."));
+                    removeCoverMutation.mutate();
+                  }}
+                >
+                  <DockIcon /> Remove as cover
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setToastId(toast.loading("Processing..."));
+                    addCoverMutation.mutate({ attachmentId: data.id });
+                  }}
+                >
+                  <DockIcon /> Make as cover
+                </DropdownMenuItem>
+              ))}
 
             <DropdownMenuItem>
               <a

@@ -66,6 +66,7 @@ export interface Card {
   assignMembers: AssignMember[];
   attachments: AttachmentFileType[];
   checklists: Checklist[];
+
   cover?: Cover;
 }
 

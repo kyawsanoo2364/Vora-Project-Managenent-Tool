@@ -19,10 +19,10 @@ import {
 import CardDetailsSkeleton from "../editCardComponents/cardDetails-skeleton";
 import CardDetails from "../editCardComponents/cardDetails";
 import Image from "next/image";
-import ColorThief from "colorthief";
-import { useEffect, useState } from "react";
 import useImageColor from "@/hooks/use-image-color";
 import { cn } from "@/libs/utils/helpers";
+import { Button } from "../ui/button";
+import CoverHeaderTool from "../editCardComponents/coverHeaderTool";
 
 export const PRIORITIES: Priority[] = [
   { label: "Low", color: "#22c55e" }, // green
@@ -56,7 +56,7 @@ const EditCardView = () => {
     <div className="w-full h-full flex flex-col">
       <div
         className={cn(
-          "w-full h-[10vh] flex items-center justify-center backdrop-blur-md ",
+          "w-full h-[10vh] flex items-center justify-center backdrop-blur-md relative",
           dataQuery.data?.cover && "h-[20vh]",
         )}
         style={
@@ -68,6 +68,9 @@ const EditCardView = () => {
             : undefined
         }
       >
+        {/** header toolbar */}
+        <CoverHeaderTool />
+        {/**Cover Image */}
         {dataQuery?.data?.cover && !isColorLoading && color && (
           <Image
             src={dataQuery.data.cover.media.url}

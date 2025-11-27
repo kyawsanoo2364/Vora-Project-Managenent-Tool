@@ -503,6 +503,7 @@ export const GET_CARD_BY_ID = gql`
           avatar
         }
       }
+
       cover {
         id
         mediaId
@@ -870,5 +871,25 @@ export const REACTION_TO_COMMENT = gql`
     ) {
       id
     }
+  }
+`;
+
+export const ADD_COVER_IN_CARD = gql`
+  mutation addCoverInCard(
+    $cardId: String!
+    $attachmentId: String!
+    $boardId: String!
+  ) {
+    addCoverInCard(
+      cardId: $cardId
+      attachmentId: $attachmentId
+      boardId: $boardId
+    )
+  }
+`;
+
+export const REMOVE_COVER_FROM_CARD = gql`
+  mutation removeCoverFromCard($cardId: String!, $boardId: String!) {
+    removeCoverFromCard(cardId: $cardId, boardId: $boardId)
   }
 `;

@@ -412,6 +412,7 @@ const CardDetails = ({ data, boardId }: { data: Card; boardId: string }) => {
       {data.attachments?.length > 0 && (
         <Attachment
           data={data.attachments}
+          coverId={data.cover?.id}
           cardId={data.id}
           boardId={boardId}
           className="my-4"

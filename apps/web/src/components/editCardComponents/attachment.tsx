@@ -14,9 +14,10 @@ interface Props {
   cardId: string;
   boardId: string;
   className?: string;
+  coverId?: string;
 }
 
-const Attachment = ({ data, cardId, boardId, className }: Props) => {
+const Attachment = ({ data, cardId, boardId, className, coverId }: Props) => {
   return (
     <div className={cn("w-full space-y-2", className)}>
       <div className="flex w-full items-center justify-between">
@@ -42,6 +43,7 @@ const Attachment = ({ data, cardId, boardId, className }: Props) => {
             <AttachmentItem
               key={i}
               data={a}
+              coverId={coverId}
               boardId={boardId}
               cardId={cardId}
             />
