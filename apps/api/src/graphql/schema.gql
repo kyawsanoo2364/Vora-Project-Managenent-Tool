@@ -69,36 +69,6 @@ type BoardPagination {
   nextCursor: String
 }
 
-type List {
-  id: String!
-  name: String!
-  orderIndex: Int!
-}
-
-type InviteLink {
-  inviteLink: String!
-}
-
-type FindInviteLink {
-  id: String
-}
-
-type ConfirmInvite {
-  invitedBy: String
-  scopeName: String
-  scopeType: String!
-  alreadyJoined: Boolean!
-}
-
-type WorkspaceMember {
-  id: String!
-  role: String!
-  workspaceId: String!
-  userId: String!
-  user: User!
-  createdAt: DateTime!
-}
-
 type AttachmentEntity {
   id: String!
   userId: String!
@@ -144,6 +114,42 @@ type Card {
   isCompleted: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+type List {
+  id: String!
+  name: String!
+  orderIndex: Int!
+  cards: [Card!]!
+}
+
+type InviteLink {
+  inviteLink: String!
+}
+
+type FindInviteLink {
+  id: String
+}
+
+type ConfirmInvite {
+  invitedBy: String
+  scopeName: String
+  scopeType: String!
+  alreadyJoined: Boolean!
+}
+
+type WorkspaceMember {
+  id: String!
+  role: String!
+  workspaceId: String!
+  userId: String!
+  user: User!
+  createdAt: DateTime!
+}
+
+type CardPos {
+  listId: String!
+  orderIndex: Int!
 }
 
 type Activity {
@@ -205,7 +211,6 @@ type Query {
   user: User!
   getUsersByNameOrEmail(searchTerms: String!): [User!]!
   get_all_my_workspaces: [Workspace!]!
-  workspace(id: Int!): Workspace!
   getAllBoards(workspaceId: String!, take: Int! = 10, cursor: String, sort: String, search: String): BoardPagination!
   getBoard(boardId: String!): Board!
   findStarredBoards(workspaceId: String!): [Board!]!
@@ -221,6 +226,7 @@ type Query {
   getCardById(id: String!): Card!
   getBoardIdFromCard(cardId: String!): String!
   getAssignedMemberInCard(cardId: String!, boardId: String!): [BoardMember!]!
+  getCurrentCardPosAndList(cardId: String!): CardPos!
   getAllActivitiesByCardId(cardId: String!, boardId: String!): [Activity!]!
   getAllChecklistByBoardId(boardId: String!): [Checklist!]!
   checklists(cardId: String!): [Checklist!]!
@@ -238,8 +244,6 @@ type Mutation {
   updateUser(updateUserInput: UpdateUserInput!): User!
   removeUser(id: Int!): User!
   createWorkspace(createWorkspaceInput: CreateWorkspaceInput!): Workspace!
-  updateWorkspace(updateWorkspaceInput: UpdateWorkspaceInput!): Workspace!
-  removeWorkspace(id: Int!): Workspace!
   createBoard(createBoardInput: CreateBoardInput!): Board!
   toggleStarredBoard(toggleStarredBoardInput: ToggleStarredBoardInput!): String!
   updateBoard(updateBoardInput: UpdateBoardInput!): Board!
@@ -316,13 +320,6 @@ input CreateWorkspaceInput {
   name: String!
   description: String
   logo: String
-}
-
-input UpdateWorkspaceInput {
-  name: String
-  description: String
-  logo: String
-  id: Int!
 }
 
 input CreateBoardInput {

@@ -22,8 +22,23 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../modern-ui/popover";
 import MoveCardContent from "./move-card-content";
 import CoverCardContent from "./cover-card-content";
+import { useQuery } from "@tanstack/react-query";
+import { GET_CURRENT_CARD_POS_AND_LIST } from "@/libs/utils/queryStringGraphql";
+import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
+import { CardPosAndListType } from "@/libs/types";
 
-const CoverHeaderTool = () => {
+interface Props {
+  boardId: string;
+  cardId: string;
+}
+
+const CoverHeaderTool = ({ boardId, cardId }: Props) => {
+  const getCardPosAndListId = useQuery({
+    queryKey: ["cardPosAndList", cardId],
+    queryFn: async () =>
+      (await fetchWithAuth(GET_CURRENT_CARD_POS_AND_LIST, { cardId }))
+        ?.getCurrentCardPosAndList as CardPosAndListType,
+  });
   return (
     <div className="absolute top-0 right-0 left-0 px-3 py-2 flex w-full justify-between items-center">
       {/**left */}
@@ -36,7 +51,12 @@ const CoverHeaderTool = () => {
             </div>
           </PopoverTrigger>
           <PopoverContent>
-            <MoveCardContent />
+            <MoveCardContent
+              boardId={boardId}
+              cardId={cardId}
+              listId={getCardPosAndListId.data?.listId as string}
+              cardPos={getCardPosAndListId.data?.orderIndex as number}
+            />
           </PopoverContent>
         </Popover>
       </div>

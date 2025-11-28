@@ -11,6 +11,7 @@ import { AssignMemberCardInput } from './dto/assign-member-card.input';
 import { BoardMember } from 'src/board-member/entities/board-member.entity';
 import { AttachmentEntity } from '../attachment/entities/attachment.entity';
 import { Card } from './entities/card.entity';
+import { CardPos } from './entities/card.pos.enitity';
 
 @Resolver(() => Card)
 export class CardResolver {
@@ -108,6 +109,12 @@ export class CardResolver {
     @Args('boardId') boardId: string,
   ) {
     return this.cardService.removeCover(cardId, boardId);
+  }
+
+  @UseGuards(JWTAuthGuard)
+  @Query(() => CardPos)
+  getCurrentCardPosAndList(@Args('cardId') cardId: string) {
+    return this.cardService.getCurrentCardPosAndList(cardId);
   }
 
   @UseGuards(JWTAuthGuard, BoardPermissionGuard)

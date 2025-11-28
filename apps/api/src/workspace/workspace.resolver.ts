@@ -27,24 +27,4 @@ export class WorkspaceResolver {
     const user = context.req.user;
     return this.workspaceService.findAll(user.id);
   }
-
-  @Query(() => Workspace, { name: 'workspace' })
-  findOne(@Args('id', { type: () => Int }) id: number) {
-    return this.workspaceService.findOne(id);
-  }
-
-  @Mutation(() => Workspace)
-  updateWorkspace(
-    @Args('updateWorkspaceInput') updateWorkspaceInput: UpdateWorkspaceInput,
-  ) {
-    return this.workspaceService.update(
-      updateWorkspaceInput.id,
-      updateWorkspaceInput,
-    );
-  }
-
-  @Mutation(() => Workspace)
-  removeWorkspace(@Args('id', { type: () => Int }) id: number) {
-    return this.workspaceService.remove(id);
-  }
 }

@@ -42,6 +42,13 @@ export class ListService {
       orderBy: {
         orderIndex: 'asc',
       },
+      include: {
+        cards: {
+          select: {
+            id: true,
+          },
+        },
+      },
     });
 
     return lists;

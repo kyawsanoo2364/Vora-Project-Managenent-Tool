@@ -47,6 +47,7 @@ export type ListType = {
   id: string;
   name: string;
   orderIndex: number;
+  cards: { id: string }[];
 };
 
 type Priority = {
@@ -68,6 +69,11 @@ export interface Card {
   checklists: Checklist[];
 
   cover?: Cover;
+}
+
+export interface CardPosAndListType {
+  listId: string;
+  orderIndex: number;
 }
 
 export interface Cover {

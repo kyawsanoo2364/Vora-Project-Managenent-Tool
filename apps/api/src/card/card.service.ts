@@ -283,6 +283,12 @@ export class CardService {
 
     return card;
   }
+  //get current card position and current list
+  async getCurrentCardPosAndList(cardId: string) {
+    const card = await this.prisma.card.findUnique({ where: { id: cardId } });
+    if (!card) throw new BadRequestException('Invalid Card');
+    return { listId: card.listId, orderIndex: card.orderIndex };
+  }
 
   async update(id: string, updateCardInput: UpdateCardInput, userId: string) {
     const oldCard = await this.prisma.card.findUnique({ where: { id } });

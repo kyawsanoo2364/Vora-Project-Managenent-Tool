@@ -1,19 +1,26 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Label } from "../modern-ui/label";
 import { Button } from "../ui/button";
 import Image from "next/image";
-import { Skeleton } from "../ui/skeleton";
+import { cn } from "@/libs/utils/helpers";
 
 const CoverCardContent = () => {
+  const [size, setSize] = useState<"contain" | "cover">("contain");
   return (
     <div className="flex flex-col gap-2">
       <h4 className="text-lg font-semibold text-center">Cover</h4>
       <div className="flex flex-col gap-1">
         <Label>Size</Label>
         <div className="grid grid-cols-2 gap-2">
-          <div className="w-full h-24 rounded-md">
+          <div
+            onClick={() => setSize("contain")}
+            className={cn(
+              "w-full h-24 rounded-md cursor-pointer",
+              size === "contain" && "border-2 border-blue-500",
+            )}
+          >
             <Image
               src={"/example1.jpeg"}
               alt="eg1"
@@ -29,11 +36,15 @@ const CoverCardContent = () => {
             </div>
           </div>
           <div
-            className="w-full h-24 bg-blue-500 rounded-md "
+            onClick={() => setSize("cover")}
+            className={cn(
+              "w-full h-24 bg-blue-500 rounded-md cursor-pointer",
+              size === "cover" && "border-2 border-blue-500",
+            )}
             style={{ background: `url("/example1.jpeg")`, objectFit: "cover" }}
           >
             <div className="h-[40px] w-full" />
-            <div className="flex flex-col gap-2 p-2 pb-5 bg-gray-50/30 backdrop-blur-lg">
+            <div className="flex flex-col gap-2 p-2 pb-4 bg-gray-50/30 backdrop-blur-lg">
               <div className="w-full h-1 rounded-full bg-gray-400"></div>
               <div className="w-[40px] h-1 rounded-full bg-gray-400"></div>
               <div className="w-[60px] h-1 rounded-full bg-gray-400"></div>

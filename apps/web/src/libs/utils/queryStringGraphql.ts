@@ -180,6 +180,9 @@ export const GET_LISTS = gql`
       id
       name
       orderIndex
+      cards {
+        id
+      }
     }
   }
 `;
@@ -407,6 +410,15 @@ export const GET_CARDS_BY_LIST_ID = gql`
     getCardsByListId(listId: $listId) {
       id
       title
+    }
+  }
+`;
+
+export const GET_CURRENT_CARD_POS_AND_LIST = gql`
+  query getCurrentCardPosAndList($cardId: String!) {
+    getCurrentCardPosAndList(cardId: $cardId) {
+      listId
+      orderIndex
     }
   }
 `;

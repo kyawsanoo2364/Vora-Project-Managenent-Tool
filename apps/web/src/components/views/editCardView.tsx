@@ -69,7 +69,7 @@ const EditCardView = () => {
         }
       >
         {/** header toolbar */}
-        <CoverHeaderTool />
+        <CoverHeaderTool boardId={boardId} cardId={cardId as string} />
         {/**Cover Image */}
         {dataQuery?.data?.cover && !isColorLoading && color && (
           <Image
