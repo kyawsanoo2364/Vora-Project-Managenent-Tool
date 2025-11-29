@@ -905,3 +905,23 @@ export const REMOVE_COVER_FROM_CARD = gql`
     removeCoverFromCard(cardId: $cardId, boardId: $boardId)
   }
 `;
+
+export const MOVE_CARD = gql`
+  mutation MoveCard(
+    $cardId: String!
+    $toBoardId: String!
+    $toListId: String!
+    $cardPos: Int!
+    $boardId: String!
+  ) {
+    moveCard(
+      moveCardInput: {
+        cardId: $cardId
+        toBoardId: $toBoardId
+        toListId: $toListId
+        cardPos: $cardPos
+      }
+      boardId: $boardId
+    )
+  }
+`;

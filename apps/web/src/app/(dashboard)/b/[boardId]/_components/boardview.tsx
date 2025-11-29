@@ -25,7 +25,7 @@ import {
 } from "@dnd-kit/core";
 import { cn, getTaskPos } from "@/libs/utils/helpers";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
 import {
   CREATE_LIST,

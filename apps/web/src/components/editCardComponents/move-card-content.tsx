@@ -11,6 +11,7 @@ import {
 import { Button } from "../modern-ui/button";
 import {
   useInfiniteQuery,
+  useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
@@ -18,20 +19,31 @@ import { useLocalStorage } from "@/hooks/use-localstorage";
 import { fetchWithAuth } from "@/libs/utils/fetchWithAuth";
 import {
   GET_ALL_BOARDS,
-  GET_CURRENT_CARD_POS_AND_LIST,
   GET_LISTS,
+  MOVE_CARD,
 } from "@/libs/utils/queryStringGraphql";
 import { GetBoardDataType, ListType } from "@/libs/types";
 import { Loader2Icon } from "lucide-react";
+import toast from "react-hot-toast";
 
 interface Props {
   boardId: string;
   cardId: string;
   listId: string;
   cardPos: number;
+  onSuccess?: () => void;
 }
 
-const MoveCardContent = ({ boardId, cardId, listId, cardPos }: Props) => {
+const MoveCardContent = ({
+  boardId,
+  cardId,
+  listId,
+  cardPos,
+  onSuccess,
+}: Props) => {
+  const queryClient = useQueryClient();
+  const [tempBoardId, setTempBoardId] = useState(boardId);
+  const [tempListId, setTempListId] = useState(listId);
   const [board, setBoard] = useState(boardId);
   const [list, setList] = useState(listId || "");
   const [position, setPosition] = useState(cardPos.toString() || "0");
@@ -52,17 +64,67 @@ const MoveCardContent = ({ boardId, cardId, listId, cardPos }: Props) => {
     queryFn: async () =>
       (await fetchWithAuth(GET_LISTS, { boardId: board }))?.list as ListType[],
   });
+
   useEffect(() => {
-    if (board !== boardId && getLists.data) {
-      setList(getLists.data[0].id);
-    } else {
-      setList(listId);
-      setPosition(cardPos.toString());
+    if (!getLists.data || getLists.data.length === 0) return;
+
+    if (board !== tempBoardId) {
+      setTempBoardId(board);
+      const first = getLists.data[0];
+      if (list !== first.id) {
+        setList(first.id);
+      }
+      setPosition("0");
+      return;
     }
-  }, [board, getLists?.data]);
+    if (list !== tempListId) {
+      setTempListId(list);
+      setPosition("0");
+
+      return;
+    }
+
+    setList(listId);
+    setPosition(cardPos.toString());
+  }, [board, list, getLists.data]);
 
   const currentList = getLists.data?.find((l) => l.id === list);
   const cards = currentList?.cards ?? [];
+
+  const moveCardMutation = useMutation({
+    mutationFn: async ({
+      toBoardId,
+      toListId,
+      cardPos,
+    }: {
+      toBoardId: string;
+      toListId: string;
+      cardPos: number;
+    }) =>
+      await fetchWithAuth(MOVE_CARD, {
+        toBoardId,
+        toListId,
+        cardPos,
+        boardId,
+        cardId,
+      }),
+    onError: (err) => {
+      toast.error(err.message || "Something went wrong!");
+    },
+    onSuccess: async (_, vars) => {
+      await queryClient.invalidateQueries({
+        queryKey: ["get_boardId_from_card", cardId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["cardPosAndList", cardId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["activities", cardId],
+      });
+      onSuccess?.();
+      toast.success("Card moved successfully.");
+    },
+  });
 
   return (
     <div className="flex flex-col gap-2">
@@ -126,9 +188,7 @@ const MoveCardContent = ({ boardId, cardId, listId, cardPos }: Props) => {
                       </SelectItem>
                     ))
                   ) : (
-                    <SelectItem value={cardPos.toString()}>
-                      {cardPos + 1}
-                    </SelectItem>
+                    <SelectItem value={"0"}>1</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -136,13 +196,21 @@ const MoveCardContent = ({ boardId, cardId, listId, cardPos }: Props) => {
           </div>
           <Button
             disabled={
-              board === boardId &&
-              list === listId &&
-              position === cardPos.toString()
+              moveCardMutation.isPending ||
+              (board === boardId &&
+                list === listId &&
+                position === cardPos.toString())
+            }
+            onClick={() =>
+              moveCardMutation.mutate({
+                toBoardId: board,
+                toListId: list,
+                cardPos: parseInt(position),
+              })
             }
             className="my-2 disabled:bg-gray-500 text-white bg-blue-500 hover:bg-blue-600"
           >
-            Move
+            {moveCardMutation.isPending ? "Moving..." : "Move"}
           </Button>
         </>
       )}

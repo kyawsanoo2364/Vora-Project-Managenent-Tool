@@ -266,6 +266,7 @@ type Mutation {
   removeCoverFromCard(cardId: String!, boardId: String!): String!
   removeAssignMemberInCard(assignMemberCardInput: AssignMemberCardInput!, boardId: String!): String!
   addAttachmentFromURL(cardId: String!, url: String!, boardId: String!): AttachmentEntity!
+  moveCard(moveCardInput: MoveCardInput!, boardId: String!): String!
   createActivity(createActivityInput: CreateActivityInput!): Activity!
   updateActivity(updateActivityInput: UpdateActivityInput!): Activity!
   removeActivity(id: Int!): Activity!
@@ -405,6 +406,13 @@ input UpdateCardInput {
 input AssignMemberCardInput {
   cardId: String!
   memberId: String!
+}
+
+input MoveCardInput {
+  cardId: String!
+  toBoardId: String!
+  toListId: String!
+  cardPos: Int!
 }
 
 input CreateActivityInput {

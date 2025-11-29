@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +11,7 @@ import { ActivityService } from 'src/activity/activity.service';
 import { AssignMemberCardInput } from './dto/assign-member-card.input';
 import { validateFileUrl } from 'src/utils/validateFileUrl';
 import { MediaService } from 'src/media/media.service';
+import { MoveCardInput } from './dto/move-card-input';
 
 @Injectable()
 export class CardService {
@@ -505,5 +507,62 @@ export class CardService {
     });
 
     return newAttachment;
+  }
+
+  async moveCard(moveCardInput: MoveCardInput, userId: string) {
+    const { cardId, cardPos, toListId, toBoardId } = moveCardInput;
+    const toBoard = await this.prisma.board.findUnique({
+      where: { id: toBoardId },
+    });
+    if (!toBoard) throw new BadRequestException('Invalid toBoard Id');
+    const toBoardMember = await this.prisma.boardMember.findFirst({
+      where: {
+        boardId: toBoardId,
+        userId,
+      },
+    });
+    if (!toBoardMember)
+      throw new ForbiddenException(
+        `Permission denied! You’re not a member of the board`,
+      );
+    if (toBoardMember.role === 'VIEWER')
+      throw new ForbiddenException(
+        'Permission Denied! You cannot move this card',
+      );
+
+    const list = await this.prisma.list.findUnique({
+      where: { id: toListId },
+      include: { cards: true },
+    });
+    if (!list) throw new BadRequestException('Invalid List');
+    const card = await this.prisma.card.findUnique({ where: { id: cardId } });
+    if (!card) throw new BadRequestException('Invalid Card');
+    //check card position is valid or invalid. cardPos starts from 0.
+    if (list.cards.length > 0 && cardPos > list.cards.length) {
+      throw new BadRequestException('Invalid card position');
+    }
+    const otherCards = list.cards;
+    otherCards.splice(cardPos, 0, card);
+
+    const updates = otherCards.map((card, i) => {
+      return this.prisma.card.update({
+        where: { id: card.id },
+        data: {
+          listId: list.id,
+          orderIndex: i,
+        },
+      });
+    });
+
+    await this.prisma.$transaction(updates);
+
+    await this.logActivity(
+      true,
+      `moved to board "${toBoard.name}", list "${list.name}"`,
+      cardId,
+      userId,
+    );
+
+    return 'Card moved successfully!';
   }
 }

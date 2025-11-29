@@ -12,6 +12,7 @@ import { BoardMember } from 'src/board-member/entities/board-member.entity';
 import { AttachmentEntity } from '../attachment/entities/attachment.entity';
 import { Card } from './entities/card.entity';
 import { CardPos } from './entities/card.pos.enitity';
+import { MoveCardInput } from './dto/move-card-input';
 
 @Resolver(() => Card)
 export class CardResolver {
@@ -149,5 +150,17 @@ export class CardResolver {
       userId,
       boardId,
     );
+  }
+
+  @UseGuards(JWTAuthGuard, BoardPermissionGuard)
+  @BoardRole('ADMIN', 'MEMBER')
+  @Mutation(() => String)
+  moveCard(
+    @Args('moveCardInput') moveCardInput: MoveCardInput,
+    @Args('boardId') boardId: string,
+    @Context() context: any,
+  ) {
+    const userId = context.req.user.id;
+    return this.cardService.moveCard(moveCardInput, userId);
   }
 }
